@@ -1,0 +1,45 @@
+# Unity generated folders and files
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# IDE and generated project files
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.slnx
+*.user
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+
+# Unity crash reports and local machine files
+sysinfo.txt
+*.stacktrace.txt
+*.userprefs
+.DS_Store
+Thumbs.db
+
+# Build output and package archives
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.exe
+*.dll
+*.zip
+
+# Keep Unity metadata files alongside assets
+!/[Aa]ssets/**/*.meta
+!/[Pp]ackages/**/*.json
+!/[Pp]roject[Ss]ettings/**/*.asset
