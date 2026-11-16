@@ -678,6 +678,7 @@ MonoBehaviour:
   cameraPosition: {x: 0, y: 12, z: -16}
   cameraEulerAngles: {x: 35, y: 0, z: 0}
   firstFighterVisualAsset: {fileID: 100100000, guid: 2670ee43939cc5e4495f6616366acaeb, type: 3}
+  firstFighterAnimatorController: {fileID: 9100000, guid: f2cbe4c70f4b4c3c9b1b2a4f89d5c812, type: 2}
   firstFighterVisualLocalPosition: {x: 0, y: -1, z: 0}
   firstFighterVisualLocalScale: {x: 1, y: 1, z: 1}
 --- !u!1660057539 &9223372036854775807

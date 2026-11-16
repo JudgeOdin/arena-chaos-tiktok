@@ -7,6 +7,7 @@ using UnityEditor;
 [RequireComponent(typeof(Rigidbody))]
 public class ArenaFighter : MonoBehaviour
 {
+    private static int nextVisualStyle;
     [SerializeField] private float maxHealth = 100f;
     [SerializeField] private float attackDamage = 16f;
     [SerializeField] private float moveSpeed = 2.8f;
@@ -22,17 +23,54 @@ public class ArenaFighter : MonoBehaviour
     private Renderer healthFillRenderer;
     private TextMesh nameLabel;
     private VisualMotionDriver visualMotion;
+    private FighterVisualRig visualRig;
     private float health;
     private float nextTargetSearch;
     private float nextAttack;
     private bool isPunching;
     private bool isEliminated;
+    private float shieldHealth;
+    private bool visualMoving;
+    private float attackProgress;
+    private int attackCycle;
 
     public bool IsAlive => !isEliminated && health > 0f;
     public float Health => health;
+    public float MaxHealth => maxHealth;
+    public float ShieldHealth => shieldHealth;
     public string DisplayName { get; private set; }
+    public bool IsMoving => visualMoving;
+    public bool IsPunching => isPunching;
+    public bool IsHeadbutting => isPunching && attackCycle % 3 == 0;
+    public float AttackProgress => attackProgress;
+    public int AttackCycle => attackCycle;
 
-    public void AttachExternalVisual(UnityEngine.Object visualPrefab, Vector3 localPosition, Vector3 localScale)
+    public void GiftIncreaseMaxHealth(float amount)
+    {
+        if (!IsAlive) return;
+        amount = Mathf.Max(0f, amount);
+        maxHealth += amount;
+        health += amount;
+        UpdateHealthBar();
+    }
+
+    public void GiftIncreaseAttack(float amount)
+    {
+        attackDamage += Mathf.Max(0f, amount);
+    }
+
+    public void GiftIncreaseSpeed(float amount)
+    {
+        moveSpeed += Mathf.Max(0f, amount);
+    }
+
+    public void GiftShield(float amount)
+    {
+        if (!IsAlive) return;
+        shieldHealth += Mathf.Max(0f, amount);
+    }
+
+    public void AttachExternalVisual(UnityEngine.Object visualPrefab, Vector3 localPosition, Vector3 localScale, RuntimeAnimatorController animatorController = null)
     {
         if (visualPrefab == null)
         {
@@ -40,6 +78,7 @@ public class ArenaFighter : MonoBehaviour
         }
 
         HideBuiltInVisuals();
+        visualRig?.SetVisible(false);
 
         int childCountBeforeInstantiate = transform.childCount;
         GameObject visualInstance;
@@ -83,12 +122,25 @@ public class ArenaFighter : MonoBehaviour
             return;
         }
 
-        animator.applyRootMotion = false;
-        visualMotion = visualInstance.GetComponent<VisualMotionDriver>() ?? visualInstance.AddComponent<VisualMotionDriver>();
-        if (animator.avatar == null)
+        // The imported package prefab points to Male Young Guy.controller.
+        // Override it only on this test visual so the package asset remains untouched.
+        if (animatorController != null)
         {
-            Debug.LogWarning("ArenaFighter: Male Athlate Avatar alanı boş. Model Generic olarak kullanılacak; Humanoid dönüşümü yapılmadı.");
+            animator.runtimeAnimatorController = animatorController;
         }
+
+        animator.applyRootMotion = false;
+        // No compatible Walk clip exists for this Generic model. Keep the
+        // Animator component and controller reference intact for later work,
+        // but disable animation on this PLAYER-only test visual so an imported
+        // root/armature position curve cannot move the whole model.
+        animator.enabled = false;
+        visualMotion = visualInstance.GetComponent<VisualMotionDriver>() ?? visualInstance.AddComponent<VisualMotionDriver>();
+        // Enable procedural locomotion only for the PLAYER test visual.
+        // It never moves this fighter root or changes its physics components.
+        visualMotion.enabled = true;
+        // Male Athlate is intentionally imported as Generic for this test.
+        // An empty Avatar is therefore expected and is not a runtime error.
     }
 
     private void HideBuiltInVisuals()
@@ -149,6 +201,10 @@ public class ArenaFighter : MonoBehaviour
         }
 
         CreateCharacterVisuals(color);
+        HideBuiltInVisuals();
+        visualRig = gameObject.AddComponent<FighterVisualRig>();
+        int visualStyle = nextVisualStyle++ % 4;
+        visualRig.Build(color, visualStyle);
         CreateNameLabel();
         CreateHealthBar();
         CreateFist(color);
@@ -170,6 +226,7 @@ public class ArenaFighter : MonoBehaviour
 
         if (target == null)
         {
+            visualMoving = false;
             visualMotion?.SetMoving(false);
             return;
         }
@@ -184,6 +241,7 @@ public class ArenaFighter : MonoBehaviour
         }
 
         bool moving = distance > attackRange;
+        visualMoving = moving;
         visualMotion?.SetMoving(moving);
 
         if (moving)
@@ -203,6 +261,8 @@ public class ArenaFighter : MonoBehaviour
     private IEnumerator PunchRoutine()
     {
         isPunching = true;
+        attackCycle++;
+        attackProgress = 0f;
         Vector3 start = new Vector3(0.62f, 0.3f, 0.18f);
         Vector3 reach = new Vector3(0.62f, 0.3f, 0.98f);
         float elapsed = 0f;
@@ -210,6 +270,7 @@ public class ArenaFighter : MonoBehaviour
         while (elapsed < 0.12f)
         {
             elapsed += Time.deltaTime;
+            attackProgress = Mathf.Clamp01(elapsed / 0.24f);
             fist.localPosition = Vector3.Lerp(start, reach, elapsed / 0.12f);
             yield return null;
         }
@@ -229,11 +290,13 @@ public class ArenaFighter : MonoBehaviour
         while (elapsed < 0.12f)
         {
             elapsed += Time.deltaTime;
+            attackProgress = 0.5f + Mathf.Clamp01(elapsed / 0.24f);
             fist.localPosition = Vector3.Lerp(reach, start, elapsed / 0.12f);
             yield return null;
         }
 
         fist.localPosition = start;
+        attackProgress = 0f;
         isPunching = false;
     }
 
@@ -244,7 +307,9 @@ public class ArenaFighter : MonoBehaviour
             return;
         }
 
-        health = Mathf.Max(0f, health - damage);
+        float absorbedDamage = Mathf.Min(shieldHealth, damage);
+        shieldHealth -= absorbedDamage;
+        health = Mathf.Max(0f, health - (damage - absorbedDamage));
         UpdateHealthBar();
         CreateHitEffect();
 
