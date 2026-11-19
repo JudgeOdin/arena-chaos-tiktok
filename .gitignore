@@ -31,6 +31,7 @@ sysinfo.txt
 Thumbs.db
 
 # Build output and package archives
+/ARENA CHAOS TİKTOK/Tools/Video/.venv/
 *.apk
 *.aab
 *.unitypackage
@@ -43,3 +44,38 @@ Thumbs.db
 !/[Aa]ssets/**/*.meta
 !/[Pp]ackages/**/*.json
 !/[Pp]roject[Ss]ettings/**/*.asset
+
+# Local assistant state and scratch copies outside the Unity project
+/.Cilo/
+/.kilo/
+/Assets/
+
+# Local backups, downloaded repair archives, and capture intermediates
+/ARENA CHAOS TİKTOK/Tools/Backups/
+/ARENA CHAOS TİKTOK/Tools/PackageRepair/
+/ARENA CHAOS TİKTOK/Tools/*.tgz
+/ARENA CHAOS TİKTOK/Tools/uvx.cmd
+/ARENA CHAOS TİKTOK/Tools/ArenaJob.txt
+/ARENA CHAOS TİKTOK/Tools/Video/CaptureRequest.*
+/ARENA CHAOS TİKTOK/Tools/TestResults/Inbox_*
+/ARENA CHAOS TİKTOK/Tools/TestResults/WSInbox_*
+/ARENA CHAOS TİKTOK/Videos/**/Kaynaklar/
+*.jsonl
+*.bak
+__pycache__/
+.env
+.env.*
+
+# Optional legacy imported packs and local MCP compiler binaries
+/ARENA CHAOS TİKTOK/Assets/Normalgon/
+/ARENA CHAOS TİKTOK/Assets/Normalgon.meta
+/ARENA CHAOS TİKTOK/Assets/EEJANAI_Team/
+/ARENA CHAOS TİKTOK/Assets/EEJANAI_Team.meta
+/ARENA CHAOS TİKTOK/Assets/Plugins/
+/ARENA CHAOS TİKTOK/Assets/Plugins.meta
+/ARENA CHAOS TİKTOK/Assets/_Recovery/
+/ARENA CHAOS TİKTOK/Assets/_Recovery.meta
+/ARENA CHAOS TİKTOK/Assets/Unity samples/
+/ARENA CHAOS TİKTOK/Assets/Unity samples.meta
+/ARENA CHAOS TİKTOK/Assets/KayKit_*/Assets/obj.meta
+/ARENA CHAOS TİKTOK/ProjectSettings/Packages/com.unity.ai.assistant/

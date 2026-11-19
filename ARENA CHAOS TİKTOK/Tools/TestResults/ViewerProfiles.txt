@@ -1,0 +1,3 @@
+PASS
+Two viewers with the same display name remain separate; gift reaches viewer-A only
+Imported battle music playback verified; runtime errors=0

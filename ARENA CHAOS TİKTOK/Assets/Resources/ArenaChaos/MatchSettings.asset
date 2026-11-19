@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09c5e318e5d75b343ad002faecfa6445, type: 3}
+  m_Name: MatchSettings
+  m_EditorClassIdentifier: Assembly-CSharp::ArenaMatchSettings
+  roundLength: 180
+  reservePopulation: 10
+  reinforcementInterval: 3
+  retreatHealthFraction: 0.35
+  recoveryPerSecond: 2

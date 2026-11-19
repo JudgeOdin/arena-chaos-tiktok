@@ -119,6 +119,19 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!134 &141765581
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -409,7 +422,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 711611853}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 141765581}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -546,6 +559,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!134 &1495903326
+PhysicsMaterial:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 2
+  m_DynamicFriction: 0.6
+  m_StaticFriction: 0.6
+  m_Bounciness: 0
+  m_FrictionCombine: 0
+  m_BounceCombine: 0
 --- !u!1 &1792480407
 GameObject:
   m_ObjectHideFlags: 0
@@ -573,7 +599,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1792480407}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 1495903326}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -677,7 +703,7 @@ MonoBehaviour:
   wallThickness: 0.35
   cameraPosition: {x: 0, y: 12, z: -16}
   cameraEulerAngles: {x: 35, y: 0, z: 0}
-  firstFighterVisualAsset: {fileID: 100100000, guid: 2670ee43939cc5e4495f6616366acaeb, type: 3}
+  firstFighterVisualAsset: {fileID: 6519605648272185231, guid: 2670ee43939cc5e4495f6616366acaeb, type: 3}
   firstFighterAnimatorController: {fileID: 9100000, guid: f2cbe4c70f4b4c3c9b1b2a4f89d5c812, type: 2}
   firstFighterVisualLocalPosition: {x: 0, y: -1, z: 0}
   firstFighterVisualLocalScale: {x: 1, y: 1, z: 1}

@@ -1,0 +1,7 @@
+PASS
+TikFinity-shaped raw JSON: repeated message deduplicated, cumulative combo 1 -> 3 delivered as three units
+Disk restoration, result-screen deferral, duplicate and combo delta counts verified
+Own-viewer damage and elimination cannot inflate shared score
+Fair queue delivery and one shared viewer score verified
+Entering and cooldown deferral delivered both gifts
+Full 50-fighter arena deferred gift, delivered after one slot freed; winner matches HUD ranking; errors=0

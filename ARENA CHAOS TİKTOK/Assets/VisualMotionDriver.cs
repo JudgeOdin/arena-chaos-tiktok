@@ -13,7 +13,6 @@ public class VisualMotionDriver : MonoBehaviour
     [SerializeField] private float upperLegSwing = 28f;
     [SerializeField] private float kneeBend = 24f;
     [SerializeField] private float footCompensation = 18f;
-    [SerializeField] private float hipBob = 0.035f;
 
     private Transform leftArm;
     private Transform rightArm;

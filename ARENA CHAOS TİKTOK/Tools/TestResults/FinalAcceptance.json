@@ -1,0 +1,91 @@
+﻿{
+    "Status":  "Local checks passed; actual TikTok LIVE acceptance pending",
+    "Generated":  "2026-11-18T12:48:46",
+    "BuildResult":  "Succeeded; errors=0; warnings=8; bytes=155757382",
+    "BuildWarnings":  8,
+    "Checks":  [
+                   {
+                       "Name":  "GiftReliability",
+                       "Result":  "PASS",
+                       "Report":  "Tools/TestResults/GiftReliability.txt",
+                       "Updated":  "2026-11-18T12:44:13"
+                   },
+                   {
+                       "Name":  "PowerUps",
+                       "Result":  "PASS",
+                       "Report":  "Tools/TestResults/PowerUps.txt",
+                       "Updated":  "2026-11-18T12:36:49"
+                   },
+                   {
+                       "Name":  "ClassesAndAI",
+                       "Result":  "PASS",
+                       "Report":  "Tools/TestResults/ClassesAndAI.txt",
+                       "Updated":  "2026-11-18T11:50:52"
+                   },
+                   {
+                       "Name":  "RoundCycle",
+                       "Result":  "PASS",
+                       "Report":  "Tools/TestResults/RoundCycle.txt",
+                       "Updated":  "2026-11-18T11:51:16"
+                   },
+                   {
+                       "Name":  "ViewerProfiles",
+                       "Result":  "PASS",
+                       "Report":  "Tools/TestResults/ViewerProfiles.txt",
+                       "Updated":  "2026-11-18T11:51:22"
+                   },
+                   {
+                       "Name":  "PlayMode",
+                       "Result":  "PASS",
+                       "Report":  "Tools/TestResults/PlayMode.txt",
+                       "Updated":  "2026-11-18T11:51:48"
+                   },
+                   {
+                       "Name":  "AvatarDownloadCache",
+                       "Result":  "PASS",
+                       "Report":  "Tools/TestResults/AvatarDownloadCache.txt",
+                       "Updated":  "2026-11-18T11:59:23"
+                   },
+                   {
+                       "Name":  "LiveTransport",
+                       "Result":  "PASS",
+                       "Report":  "Tools/TestResults/LiveTransport.txt",
+                       "Updated":  "2026-11-18T12:18:11"
+                   },
+                   {
+                       "Name":  "Player_10_1920x1080",
+                       "Result":  "PASS",
+                       "Report":  "Builds/TestResults/Standalone_10_1920x1080.txt",
+                       "Updated":  "2026-11-18T12:47:00"
+                   },
+                   {
+                       "Name":  "Player_20_1920x1080",
+                       "Result":  "PASS",
+                       "Report":  "Builds/TestResults/Standalone_20_1920x1080.txt",
+                       "Updated":  "2026-11-18T12:47:20"
+                   },
+                   {
+                       "Name":  "Player_50_1920x1080",
+                       "Result":  "PASS",
+                       "Report":  "Builds/TestResults/Standalone_50_1920x1080.txt",
+                       "Updated":  "2026-11-18T12:47:40"
+                   },
+                   {
+                       "Name":  "Player_20_540x960",
+                       "Result":  "PASS",
+                       "Report":  "Builds/TestResults/Standalone_20_540x960.txt",
+                       "Updated":  "2026-11-18T12:48:00"
+                   }
+               ],
+    "SoakReport":  "Builds/TestResults/SoakTest.txt",
+    "SoakPlayerAssemblySHA256":  "ADCD9E6ED86C363DE02087751B0A0B33D2DA497AF7099AA14715C5EB95434921",
+    "FinalPlayerAssemblySHA256":  "80605A5ECCA292B3CD78EEE4A9A17CEB2B0232406C4E74E15ADD67DC425BE3F5",
+    "SamePlayerBinaryForSoakAndFinal":  false,
+    "ValidationScope":  "The 30-minute run preceded the final sender-death meteor fix, own-viewer score guard and LIVE configuration draft isolation. Meteor and scoring received dedicated Editor checks; the settings draft change was compiled and reviewed. The rebuilt final player received 10/20/50 landscape and 20 portrait smoke tests. The final binary was not rerun for another 30 minutes.",
+    "ExternalAcceptanceRequired":  [
+                                       "Broadcast username and connection provider",
+                                       "Actual gift IDs and account gift/combo/avatar delivery",
+                                       "LIVE Studio or OBS capture, audio and simultaneous load",
+                                       "1080x1920 portrait on a compatible display/output; 540x960 was validated here"
+                                   ]
+}

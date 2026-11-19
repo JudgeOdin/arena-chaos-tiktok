@@ -1,0 +1,3 @@
+UnusedModelKernelStripping=True
+VariantsRemoved=5648
+Model assets or the Include neural model inference menu disable stripping.

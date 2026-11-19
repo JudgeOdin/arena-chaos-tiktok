@@ -1,0 +1,103 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1241151c485c6744e9892d82a6cb76a2, type: 3}
+  m_Name: Content
+  m_EditorClassIdentifier: Assembly-CSharp::ArenaContent
+  fighters:
+  - {fileID: 3493431655703838400, guid: 9b05f3155f6717c418f6658b0eeeb1cb, type: 3}
+  - {fileID: 2393925357974484189, guid: 9b126c43dfc56f54d924c8fe2da7ab33, type: 3}
+  - {fileID: 5742731312695001617, guid: e238e92f0f6d8294893dc147d9b15c52, type: 3}
+  - {fileID: 5380718311853425284, guid: e69ae31bf7b7a314f9112a578b706256, type: 3}
+  - {fileID: 2123247113569528128, guid: d12569da6b8bd9a468641a2773d515aa, type: 3}
+  - {fileID: 6502526687202439465, guid: b86a4e0d5b7801b4399ccc23f9136636, type: 3}
+  fighterPortraits:
+  - {fileID: 2800000, guid: 01df5bf147c207c47875de24d7d92c97, type: 3}
+  - {fileID: 2800000, guid: 2174585bf1622a54e94f887c7a91d3c7, type: 3}
+  - {fileID: 2800000, guid: 9138f55d17006b84588630ad1ac9aee0, type: 3}
+  - {fileID: 2800000, guid: c51b7159fbbd0e84f88f07c66ed565e9, type: 3}
+  - {fileID: 2800000, guid: 5a06b5d02fc56394a935808ea7f74244, type: 3}
+  - {fileID: 2800000, guid: d609ae00082fb7e40bd3538e1d0de34f, type: 3}
+  bowPrefab: {fileID: 6706521443794777874, guid: a469235f4c5282345898cedd79a375e4, type: 3}
+  arrowPrefab: {fileID: 8479168039978580468, guid: 28948b2f376104e4eb3778dec8358f74, type: 3}
+  shieldPrefab: {fileID: 2442499268648922948, guid: b87b8c36d7e79f74ca8f4cc4612d8866, type: 3}
+  spectators:
+  - {fileID: 6791171698345837783, guid: a4af8bde0bf2ead48b3f8866b22f7ea7, type: 3}
+  - {fileID: 6381427730118029524, guid: 96991218e908c904b90f4e3428fdeece, type: 3}
+  - {fileID: 2517109952123756466, guid: 01ae0da6e79b40d40b920f86d50f1886, type: 3}
+  - {fileID: 5953118388017954446, guid: 1fa0121bd0084a448afab880f3f76a04, type: 3}
+  - {fileID: 4801688955750148782, guid: 40a7ad70c72106f478673872f2a63662, type: 3}
+  - {fileID: 423580248515235497, guid: e1b1d6039f4cf674d824054fffad8472, type: 3}
+  controller: {fileID: 9100000, guid: 661a0d9f29fcc4b429a7df8a6fc2fc21, type: 2}
+  environment:
+  - key: wall
+    prefab: {fileID: 8077638550777331055, guid: f43a6f21430239643b4dac860108378d, type: 3}
+  - key: wall_half
+    prefab: {fileID: 5914381129290768990, guid: 086d8d3322d02884ba50be3461e06454, type: 3}
+  - key: wall_pillar
+    prefab: {fileID: 7895613962151272906, guid: 20b4474fc2296b34aba68dc98fde169e, type: 3}
+  - key: wall_doorway
+    prefab: {fileID: 7623333767656932673, guid: 60246c46ed65c824a88afc10f47d2cc7, type: 3}
+  - key: wall_gated
+    prefab: {fileID: 3034592187655732019, guid: 244d22b11deebbd42b5ebcac5f849ca9, type: 3}
+  - key: column
+    prefab: {fileID: 7847117992862870655, guid: bbc80fba35afdec449005f0496c4cad7, type: 3}
+  - key: barrier
+    prefab: {fileID: 8827830379569756505, guid: 201e1d7c280e10445b8b0db7b649746a, type: 3}
+  - key: floor_tile_large
+    prefab: {fileID: 934228176842301727, guid: a3912a3e306e7224d95bac5ae26f8d1c, type: 3}
+  - key: floor_dirt_large
+    prefab: {fileID: 4632910108597345240, guid: 495f9d6c5ab4c3248b5e22904417c8ed, type: 3}
+  - key: floor_wood_large
+    prefab: {fileID: 3937525507047481861, guid: 8e9afa5419797b94aaf47c6c2114929f, type: 3}
+  - key: stairs_wide
+    prefab: {fileID: 1625959355971127845, guid: 36e1e42d04467fa48a4aa740362bcd8d, type: 3}
+  - key: stairs_wood
+    prefab: {fileID: 8211186894713359138, guid: 7581712ad4028c04c9ed0143291017c0, type: 3}
+  - key: banner_red
+    prefab: {fileID: 4420286966928320968, guid: 5078e59a5211e8a44bebf802660863e5, type: 3}
+  - key: banner_blue
+    prefab: {fileID: 4075925433926973033, guid: 104faf9eeaeaff648a7f2a568b608361, type: 3}
+  - key: torch_mounted
+    prefab: {fileID: 4299176515803243088, guid: 7550ce0ade293a244a78cc676b9a0107, type: 3}
+  stone: {fileID: 2100000, guid: dde51908c6aa142469606eb4b1cdf7a7, type: 2}
+  sand: {fileID: 2100000, guid: 2000b315dcb034c4b821026d38af15d4, type: 2}
+  timber: {fileID: 2100000, guid: f3f136fabdad61841991680b74b7b3bf, type: 2}
+  gold: {fileID: 2100000, guid: d2a3499b8ec12be48a82218a61fcb2cd, type: 2}
+  red: {fileID: 2100000, guid: 33b940ce86d67d94d86c2d1d78d91cc0, type: 2}
+  blue: {fileID: 2100000, guid: b9e288d1be6580247971a8360c5e112d, type: 2}
+  ambience: {fileID: 8300000, guid: f57daa84da1d2cc4788f584104cd04cd, type: 3}
+  cheer: {fileID: 8300000, guid: 54de397a0ab01774987350d20fd2b712, type: 3}
+  battleMusic: {fileID: 8300000, guid: b8f2ec0cee966ac44b34884c00a6e4ff, type: 3}
+  punches:
+  - {fileID: 8300000, guid: 4f15b518d8af2bd42915a910d245024d, type: 3}
+  - {fileID: 8300000, guid: 5e568cbf26649cb4f9aea8ae1117ffb3, type: 3}
+  - {fileID: 8300000, guid: 065d8a5a488655b4cba0cb3bf93a36ed, type: 3}
+  - {fileID: 8300000, guid: a214b34fdf61e964e80c96b4db36fdb3, type: 3}
+  - {fileID: 8300000, guid: 35fff1eb0c3b1dc4f967ef162f59fba6, type: 3}
+  footsteps:
+  - {fileID: 8300000, guid: 1987143c241aaae49a206874096755f7, type: 3}
+  - {fileID: 8300000, guid: 1f4ba88691a874c4880f52f6d98ae695, type: 3}
+  - {fileID: 8300000, guid: e0fce97c925033641b60a2500466c19a, type: 3}
+  - {fileID: 8300000, guid: ceb8be14918368d498de09192cbe5bf5, type: 3}
+  - {fileID: 8300000, guid: 61fb61a42df69f54689027a6c6743930, type: 3}
+  doors:
+  - {fileID: 8300000, guid: 5600bd68dd11fa84a88f39446d0bda98, type: 3}
+  - {fileID: 8300000, guid: 215106177b9ff2d41a79c11f90862c9a, type: 3}
+  - {fileID: 8300000, guid: 108c2b04a213d2045ad4a550378cf864, type: 3}
+  - {fileID: 8300000, guid: 696bd1824cec66441bbb831e135858c9, type: 3}
+  - {fileID: 8300000, guid: 3a1a42044f320d748b837f7c6e763cd9, type: 3}
+  smoke: {fileID: 2800000, guid: 6fb58266dfd5d8246bfa4a7dd9a3753b, type: 3}
+  spark: {fileID: 2800000, guid: 050650b8fcb9c8346a26a2d9ad753807, type: 3}
+  flame: {fileID: 2800000, guid: bd2ba7705bef6cc41958ec0996d7d008, type: 3}
+  sparkMaterial: {fileID: 2100000, guid: 5c21e21801887cf4aa52edfdae8ccee0, type: 2}
+  smokeMaterial: {fileID: 2100000, guid: e0ce137d1c8644c488c4a3e3e18b590e, type: 2}
+  flameMaterial: {fileID: 2100000, guid: bba1a09446d897a43a8eecd5f239b710, type: 2}

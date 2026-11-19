@@ -1,0 +1,25 @@
+PASS
+initial: fighters=10, alive=10
+@PLAYER HP=68 entering=False model=True rootMotion=False pos=(2.73, 1.00, -1.30)
+@ArenaHero02 HP=20 entering=False model=True rootMotion=False pos=(1.52, 0.90, 4.89)
+@ArenaHero03 HP=36 entering=False model=True rootMotion=False pos=(1.48, 0.90, 3.40)
+@ArenaHero04 HP=68 entering=False model=True rootMotion=False pos=(0.58, 0.90, 4.02)
+@ArenaHero05 HP=52 entering=False model=True rootMotion=False pos=(-4.71, 0.90, 0.98)
+@ArenaHero06 HP=36 entering=False model=True rootMotion=False pos=(-4.92, 0.90, -0.20)
+@ArenaHero07 HP=68 entering=False model=True rootMotion=False pos=(-1.94, 0.90, -5.66)
+@ArenaHero08 HP=84 entering=False model=True rootMotion=False pos=(-0.74, 0.90, -5.43)
+@ArenaHero09 HP=84 entering=False model=True rootMotion=False pos=(3.91, 0.90, -1.18)
+@ArenaHero10 HP=36 entering=False model=True rootMotion=False pos=(3.00, 0.90, -0.22)
+Serialized queue: active=1, waiting=2
+Gift recipient routing verified
+after-combat-and-entrances: fighters=13, alive=5
+@PLAYER HP=9,200119 entering=False model=True rootMotion=False pos=(5.95, 1.00, -0.31)
+@ArenaHero08 HP=5,639998 entering=False model=True rootMotion=False pos=(2.60, 0.90, 3.83)
+@TestEntry0 HP=67 entering=False model=True rootMotion=False pos=(3.58, 0.90, -0.49)
+@TestEntry1 HP=68 entering=False model=True rootMotion=False pos=(0.77, 0.90, 4.78)
+@TestEntry2 HP=36 entering=False model=True rootMotion=False pos=(4.77, 0.90, -0.51)
+Limb contacts=39
+after-gift: fighters=13, alive=2
+@TestEntry0 HP=3 entering=False model=True rootMotion=False pos=(4.42, 0.90, 5.90)
+@TestEntry1 HP=36 entering=False model=True rootMotion=False pos=(5.52, 0.90, 5.91)
+Runtime errors=0

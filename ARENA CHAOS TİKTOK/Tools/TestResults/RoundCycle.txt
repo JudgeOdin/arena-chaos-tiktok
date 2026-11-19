@@ -1,0 +1,5 @@
+PASS
+Round remains active with one survivor
+Reserve squad restored population: 10
+Time expiry selected score champion: @PLAYER
+Next round rebuilt; same looping music source continues; errors=0

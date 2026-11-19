@@ -1,0 +1,5 @@
+PASS
+Public HTTPS PNG downloaded at 160x160 and displayed in HUD.
+80 additional identities retained at most 64 cache entries.
+HTTP URL rejected without cache insertion.
+Actual TikTok CDN/account validation still required.

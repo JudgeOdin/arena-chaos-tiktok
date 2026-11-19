@@ -1,0 +1,4 @@
+PASS
+3/5 minute duration selection and both character gift routes verified
+Archer/guardian gear and entrances ready; ranged duel started
+Arrow collision hits=7; guardian shield consumption and low health retreat verified; errors=0

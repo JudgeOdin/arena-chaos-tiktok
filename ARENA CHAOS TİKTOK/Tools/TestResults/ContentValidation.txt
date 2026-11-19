@@ -1,0 +1,1 @@
+Animation bindings checked: 16848; material slots: 47; errors: 0

@@ -1,0 +1,44 @@
+{
+  "status": "PASS",
+  "videos": [
+    {
+      "file": "01_Meteor.mp4",
+      "status": "PASS",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30.0,
+      "seconds": 17.4,
+      "codec": "h264",
+      "audioPeakDb": -4.3,
+      "audioMeanDb": -20.5,
+      "audioSeconds": 17.4,
+      "bytes": 5654687
+    },
+    {
+      "file": "02_Alevli_Yumruk.mp4",
+      "status": "PASS",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30.0,
+      "seconds": 15.5,
+      "codec": "h264",
+      "audioPeakDb": -3.6,
+      "audioMeanDb": -20.7,
+      "audioSeconds": 15.5,
+      "bytes": 5170538
+    },
+    {
+      "file": "03_Okcu_Mu_Muhafiz_Mi.mp4",
+      "status": "PASS",
+      "width": 1080,
+      "height": 1920,
+      "fps": 30.0,
+      "seconds": 15.8,
+      "codec": "h264",
+      "audioPeakDb": -4.9,
+      "audioMeanDb": -20.8,
+      "audioSeconds": 15.8,
+      "bytes": 3230134
+    }
+  ]
+}

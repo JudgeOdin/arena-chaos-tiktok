@@ -1,0 +1,5 @@
+PASS
+Actual loopback WebSocket handshake and fragmented JSON receive verified.
+Four connections reused the same combo/messages: pending=3, delivered=0 while paused.
+Automatic reconnect and immediate disconnect/connect verified.
+Isolated test inbox; no real account or provider involved.

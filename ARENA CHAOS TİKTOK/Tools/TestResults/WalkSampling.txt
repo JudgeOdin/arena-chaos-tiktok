@@ -1,0 +1,6 @@
+Barbarian foot displacement L=0,2723285 R=0,2680917 root=0
+Knight foot displacement L=0,2723285 R=0,2680917 root=0
+Mage foot displacement L=0,2723285 R=0,2680917 root=0
+Ranger foot displacement L=0,2723285 R=0,2680917 root=0
+Rogue foot displacement L=0,2723285 R=0,2680917 root=0
+Rogue_Hooded foot displacement L=0,2723285 R=0,2680917 root=0

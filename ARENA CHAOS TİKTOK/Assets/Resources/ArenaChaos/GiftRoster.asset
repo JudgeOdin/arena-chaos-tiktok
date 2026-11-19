@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36a3cdb90af693c428521dd52b781ff5, type: 3}
+  m_Name: GiftRoster
+  m_EditorClassIdentifier: Assembly-CSharp::ArenaGiftRoster
+  tiers:
+  - role: 0
+    label: "TEMEL D\xD6V\xDC\u015E\xC7\xDC"
+    tiktokGiftId: 
+    modelIndex: 0
+    health: 100
+    damage: 16
+    speed: 2.8
+    range: 1.2
+    cooldown: 0.9
+    shield: 0
+  - role: 1
+    label: "OK\xC7U"
+    tiktokGiftId: 
+    modelIndex: 3
+    health: 140
+    damage: 22
+    speed: 3
+    range: 7
+    cooldown: 1.4
+    shield: 0
+  - role: 2
+    label: KALKANLI MUHAFIZ
+    tiktokGiftId: 
+    modelIndex: 1
+    health: 240
+    damage: 24
+    speed: 2.2
+    range: 1.25
+    cooldown: 1.05
+    shield: 80

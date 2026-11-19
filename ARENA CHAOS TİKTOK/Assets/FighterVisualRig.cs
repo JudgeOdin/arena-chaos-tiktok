@@ -51,16 +51,26 @@ public sealed class FighterVisualRig : MonoBehaviour
         Transform chest = CreateBone("Chest", hips, new Vector3(0f, 0.42f, 0f));
         Transform neck = CreateBone("Neck", chest, new Vector3(0f, 0.48f, 0f));
         head = CreateBone("Head", neck, new Vector3(0f, 0.25f, 0f));
-        CreatePart(PrimitiveType.Sphere, "Head Mesh", head, Vector3.zero, new Vector3(0.72f, 0.78f, 0.72f), fighterColor);
-        CreatePart(PrimitiveType.Sphere, "Left Eye", head, new Vector3(-0.14f, 0.03f, 0.32f), new Vector3(0.1f, 0.13f, 0.06f), Color.black);
-        CreatePart(PrimitiveType.Sphere, "Right Eye", head, new Vector3(0.14f, 0.03f, 0.32f), new Vector3(0.1f, 0.13f, 0.06f), Color.black);
-        CreatePart(PrimitiveType.Cube, "Chest Armor", chest, new Vector3(0f, 0.02f, 0f), new Vector3(0.72f, 0.65f, 0.46f), fighterColor);
+        CreatePart(PrimitiveType.Sphere, "Head Mesh", head, Vector3.zero, new Vector3(0.86f, 0.9f, 0.84f), fighterColor);
+        CreatePart(PrimitiveType.Sphere, "Left Eye Socket", head, new Vector3(-0.17f, 0.05f, 0.35f), new Vector3(0.18f, 0.21f, 0.09f), Color.white);
+        CreatePart(PrimitiveType.Sphere, "Right Eye Socket", head, new Vector3(0.17f, 0.05f, 0.35f), new Vector3(0.18f, 0.21f, 0.09f), Color.white);
+        CreatePart(PrimitiveType.Sphere, "Left Cartoon Pupil", head, new Vector3(-0.17f, 0.04f, 0.425f), new Vector3(0.085f, 0.12f, 0.045f), Color.black);
+        CreatePart(PrimitiveType.Sphere, "Right Cartoon Pupil", head, new Vector3(0.17f, 0.04f, 0.425f), new Vector3(0.085f, 0.12f, 0.045f), Color.black);
+        CreatePart(PrimitiveType.Capsule, "Left Expressive Brow", head, new Vector3(-0.17f, 0.23f, 0.34f), new Vector3(0.22f, 0.045f, 0.055f), darkColor, new Vector3(0f, 0f, -12f));
+        CreatePart(PrimitiveType.Capsule, "Right Expressive Brow", head, new Vector3(0.17f, 0.23f, 0.34f), new Vector3(0.22f, 0.045f, 0.055f), darkColor, new Vector3(0f, 0f, 12f));
+        CreatePart(PrimitiveType.Sphere, "Cartoon Nose", head, new Vector3(0f, -0.01f, 0.43f), new Vector3(0.1f, 0.1f, 0.1f), skinColor);
+        CreatePart(PrimitiveType.Capsule, "Cartoon Smile", head, new Vector3(0f, -0.2f, 0.37f), new Vector3(0.2f, 0.045f, 0.035f), Color.black, new Vector3(0f, 0f, 90f));
+        CreatePart(PrimitiveType.Capsule, "Rounded Chest", chest, new Vector3(0f, 0.02f, 0f), new Vector3(0.52f, 0.58f, 0.42f), fighterColor);
+        CreatePart(PrimitiveType.Sphere, "Left Pectoral", chest, new Vector3(-0.2f, 0.12f, 0.23f), new Vector3(0.28f, 0.18f, 0.1f), lightColor);
+        CreatePart(PrimitiveType.Sphere, "Right Pectoral", chest, new Vector3(0.2f, 0.12f, 0.23f), new Vector3(0.28f, 0.18f, 0.1f), lightColor);
         CreatePart(PrimitiveType.Cube, "Belt", hips, new Vector3(0f, 0.02f, 0f), new Vector3(0.78f, 0.14f, 0.5f), darkColor);
 
-        leftUpperArm = CreateBone("Left Upper Arm", chest, new Vector3(-0.46f, 0.24f, 0f));
-        rightUpperArm = CreateBone("Right Upper Arm", chest, new Vector3(0.46f, 0.24f, 0f));
-        CreatePart(PrimitiveType.Capsule, "Left Bicep", leftUpperArm, new Vector3(0f, -0.22f, 0f), new Vector3(0.16f, 0.27f, 0.16f), fighterColor);
-        CreatePart(PrimitiveType.Capsule, "Right Bicep", rightUpperArm, new Vector3(0f, -0.22f, 0f), new Vector3(0.16f, 0.27f, 0.16f), fighterColor);
+        leftUpperArm = CreateBone("Left Upper Arm", chest, new Vector3(-0.5f, 0.24f, 0f));
+        rightUpperArm = CreateBone("Right Upper Arm", chest, new Vector3(0.5f, 0.24f, 0f));
+        CreatePart(PrimitiveType.Sphere, "Left Rounded Shoulder", leftUpperArm, new Vector3(0f, 0f, 0f), new Vector3(0.28f, 0.26f, 0.28f), fighterColor);
+        CreatePart(PrimitiveType.Sphere, "Right Rounded Shoulder", rightUpperArm, new Vector3(0f, 0f, 0f), new Vector3(0.28f, 0.26f, 0.28f), fighterColor);
+        CreatePart(PrimitiveType.Capsule, "Left Bicep", leftUpperArm, new Vector3(0f, -0.22f, 0f), new Vector3(0.2f, 0.32f, 0.2f), fighterColor);
+        CreatePart(PrimitiveType.Capsule, "Right Bicep", rightUpperArm, new Vector3(0f, -0.22f, 0f), new Vector3(0.2f, 0.32f, 0.2f), fighterColor);
         leftLowerArm = CreateBone("Left Forearm", leftUpperArm, new Vector3(0f, -0.42f, 0f));
         rightLowerArm = CreateBone("Right Forearm", rightUpperArm, new Vector3(0f, -0.42f, 0f));
         CreatePart(PrimitiveType.Capsule, "Left Forearm Mesh", leftLowerArm, new Vector3(0f, -0.18f, 0f), new Vector3(0.14f, 0.22f, 0.14f), lightColor);
@@ -68,10 +78,10 @@ public sealed class FighterVisualRig : MonoBehaviour
         CreatePart(PrimitiveType.Sphere, "Left Boxing Glove", leftLowerArm, new Vector3(0f, -0.43f, 0.04f), new Vector3(0.26f, 0.26f, 0.26f), lightColor);
         CreatePart(PrimitiveType.Sphere, "Right Boxing Glove", rightLowerArm, new Vector3(0f, -0.43f, 0.04f), new Vector3(0.26f, 0.26f, 0.26f), lightColor);
 
-        leftUpperLeg = CreateBone("Left Upper Leg", hips, new Vector3(-0.2f, -0.12f, 0f));
-        rightUpperLeg = CreateBone("Right Upper Leg", hips, new Vector3(0.2f, -0.12f, 0f));
-        CreatePart(PrimitiveType.Capsule, "Left Thigh", leftUpperLeg, new Vector3(0f, -0.25f, 0f), new Vector3(0.2f, 0.3f, 0.2f), darkColor);
-        CreatePart(PrimitiveType.Capsule, "Right Thigh", rightUpperLeg, new Vector3(0f, -0.25f, 0f), new Vector3(0.2f, 0.3f, 0.2f), darkColor);
+        leftUpperLeg = CreateBone("Left Upper Leg", hips, new Vector3(-0.22f, -0.12f, 0f));
+        rightUpperLeg = CreateBone("Right Upper Leg", hips, new Vector3(0.22f, -0.12f, 0f));
+        CreatePart(PrimitiveType.Capsule, "Left Powerful Thigh", leftUpperLeg, new Vector3(0f, -0.25f, 0f), new Vector3(0.25f, 0.34f, 0.24f), darkColor);
+        CreatePart(PrimitiveType.Capsule, "Right Powerful Thigh", rightUpperLeg, new Vector3(0f, -0.25f, 0f), new Vector3(0.25f, 0.34f, 0.24f), darkColor);
         leftLowerLeg = CreateBone("Left Lower Leg", leftUpperLeg, new Vector3(0f, -0.5f, 0f));
         rightLowerLeg = CreateBone("Right Lower Leg", rightUpperLeg, new Vector3(0f, -0.5f, 0f));
         CreatePart(PrimitiveType.Capsule, "Left Shin", leftLowerLeg, new Vector3(0f, -0.23f, 0f), new Vector3(0.16f, 0.27f, 0.16f), fighterColor);
@@ -152,12 +162,13 @@ public sealed class FighterVisualRig : MonoBehaviour
         return bone.transform;
     }
 
-    private void CreatePart(PrimitiveType primitiveType, string name, Transform parent, Vector3 localPosition, Vector3 localScale, Color color)
+    private void CreatePart(PrimitiveType primitiveType, string name, Transform parent, Vector3 localPosition, Vector3 localScale, Color color, Vector3 localEulerAngles = default)
     {
         GameObject part = GameObject.CreatePrimitive(primitiveType);
         part.name = name;
         part.transform.SetParent(parent, false);
         part.transform.localPosition = localPosition;
+        part.transform.localRotation = Quaternion.Euler(localEulerAngles);
         part.transform.localScale = localScale;
         Renderer renderer = part.GetComponent<Renderer>();
         renderer.sharedMaterial = GetMaterial(color);
@@ -188,10 +199,12 @@ public sealed class FighterVisualRig : MonoBehaviour
     {
         Color32 color32 = color;
         int key = color32.r | (color32.g << 8) | (color32.b << 16) | (color32.a << 24);
-        if (materialCache.TryGetValue(key, out Material cached)) return cached;
+        if (materialCache.TryGetValue(key, out Material cached) && cached != null) return cached;
 
         Shader shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
         Material material = new Material(shader) { color = color };
+        material.SetFloat("_Metallic", 0.05f);
+        material.SetFloat("_Smoothness", 0.82f);
         materialCache[key] = material;
         return material;
     }

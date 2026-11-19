@@ -1,5 +1,48 @@
 # ARENA CHAOS TİKTOK — Geliştirme Durumu
 
+## 17 Kasim 2026 - Giris tunelleri ve seyirci tribunleri
+
+- ArenaStageOneSetup: dogu/bati duvarlarinda 3.2m aciklik, aciklikta gorunmez fizik bariyeri; mevcut radius korunur. ArenaPresentationDirector iki kapali catili/yan duvarli/rear duvarli tunel ve yukari acilan kirmizi/mavi kapi uretir. Dekorlar olcekli Plane yerine ArenaVisuals altinda dunya olceginde tutulur.
+- BattleArenaManager yeni hediye oyuncusunu rastgele dogu/bati backstage noktasinda olusturur. Kapilarin ayri kuyruklari vardir. Oyuncu sirada inactive, giris sirasinda kinematic/carpismasiz ve IsEntering korumasindadir. Arena icinde normal fizik ve AI geri acilir. Giris boyunca gardli yuruyus, root yer degistirmesinden beslenir.
+- 4 yonde, iki bank ve 3 sira tribun: toplam 72 komik buyuk kafali, gozlu/agizli seyirci. Paylasilan materyaller, golgesiz dekor, Animator/physics yok; toplu tezahurat hareketi 15Hz. Girislerde cosku artar.
+- Istege bagli ses alanlari hazir: Resources/ArenaAudio/CrowdAmbience ve CrowdCheer AudioClip yollarindan yuklenir veya Inspector'dan atanir. Projede ses kaydi bulunmadigi icin henuz gercek tezahurat sesi duyulmaz.
+- Ucretsiz ses onerisi: https://gregor-quendel.itch.io/free-crowd-cheering-sounds (CC BY 4.0, Gregor Quendel'e atif gerekir). Alternatif https://freesound.org/people/ken788/sounds/386762/ (kaynakta CC0).
+- Play testi: 3 hediye oyuncusu kuyruga eklendi. GateTest1 ve GateTest2 iceri girip enabled=True / kinematic=False oldu; GateTest3 x=8.23 konumunda hala giriyordu. 72 seyirci runtime sorgusuyla dogrulandi. Kamera giris sonrasi kisa odaklanma davranisini korur.
+- Testte mevcut ParticleSystem.duration degistirme hatasi bulundu; iki efekt de konfigurasyondan once StopEmittingAndClear, sonra Play cagiracak sekilde duzeltildi.
+- Son dotnet build: 0 hata, mevcut hipBob uyarisi. GTX 1650 gercek FPS olcumu yapilmadi. Orijinal model/animasyon assetleri degistirilmedi.
+
+## 17 Kasim 2026 - Gardli bokscu yuruyusu
+
+- ImportedFighterAnimationDriver: dimdik genis adim yerine hafif bukulu dizlerle kisa ters fazli adimlar eklendi. Chest gorsel kemigi one egiliyor.
+- Humanoid kollara geometrik iki-kemik IK uygulanir: yumruklar bas kemigine gore cenenin yanlarinda, sol yumruk biraz daha onde; dirsekler asagi/disari. Aynali local eksenlere sabit Euler acisi verilmez.
+- Gard hem beklerken hem yururken korunur; saldirida Animator kontrolu alir, saldiri bitince gard yumusakca geri gelir. Fizik kok konumu ve temas hasari degistirilmedi.
+- Unity Play yakin plan goruntusu Assets/Screenshots/boxing-guard.png incelendi; eller gogus/on gard pozunda goruldu. Son ayarda yumruk hedefi 0.18 m yukari alinarak cene hizasina yaklastirildi, govde egimi 14 derece oldu. Bu son kucuk poz ayarinin yeni ekran goruntusu alinmadi.
+- Test icin gecici yakin kamera ve 0.1 timeScale kullanildi; ardindan timeScale=1 yapilip Play durduruldu. Sahne kamera ayarlari kaydedilmedi.
+
+## 17 Kasim 2026 - Humanoid yuruyus ve uzuv temasi hasari
+
+- ImportedFighterAnimationDriver yenilendi: mevcut Humanoid Avatar uzerinden kemikler bulunur; yuruyus gercek yatay yer degistirmeden uretilen faz ve yumusak gecisle uygulanir. Sol/sag ust bacaklar ters fazdadir, dizler bukunur. Eksen fighter sag yonunden kemigin parent uzayina cevrilir; model/root pozisyonu degistirilmez. Hazir Walk klibi bulunmadigi icin bu prosedurel yuruyustur.
+- Saldiri sirasinda yuruyus kemik mudahalesi durur; mevcut gercek yumruk, dirsek, tekme ve diz klipleri oynar. Mevcut 0.9 saniye saldiri araligina sigdirilir. Uzun akrobatik klipler aktif rastgele havuzdan cikarildi; assetler silinmedi.
+- ArenaFighter eski yumruk kuresi hasarini sadece gecerli uzuv temas surucusu bulunmayan fallback karakterlerde kullanir. Humanoid karakterlerde el/ayak (diz saldirisinda diz) konumlari LateUpdate'te taranir. Onceki ve guncel konum arasinda NonAlloc capsule sorgusu, 0.12-0.64 saniye temas penceresi ve her saldirida her hedefe tek hasar siniri uygulanir. Kalkan ve hediye saldiri degerleri ArenaFighter uzerinden korunur.
+- Test: dotnet build --no-restore basarili, 0 hata; mevcut hipBob uyarisi kalir. Unity Play Mode'da Console error/warning sorgusu 0 kayit. 10 karakterde yuruyus blend degerleri sifirdan buyuk olarak olculdu.
+- Gercek dovus kaydi: PLAYER 7 saldiri dongusunde 6 temas, Fighter 8 9 dongude 8 temas; can azalmasi ve eleme dogrulandi. Bu sayilar otomatik her saldiriya hasar uygulanmadigini gosterir. Gorsel dogallik ve her klibin tek tek yakin plan temasi henuz kapsamli dogrulanmadi.
+- Degisen kaynaklar: Assets/ImportedFighterAnimationDriver.cs ve Assets/ArenaFighter.cs. Orijinal model/animasyon assetlerine dokunulmadi.
+
+## 17 Kasim 2026 - Guncel dogrulanmis durum (once bu bolumu okuyun)
+
+- Aktif sahne SampleScene; sahne Male Athlate prefabini ve MaleAthlate.controller dosyasini kullaniyor. Model artik Humanoid Avatar eslesmesine sahip; onceki Generic/Avatar bos tespitleri tarihsel.
+- BattleArenaManager harici modeli hem PLAYER hem diger baslangic ve hediye fighter'larina bagliyor. Bu mevcut davranis korundu.
+- ArenaStageOneSetup icindeki kosulsuz erken return kaldirildi; model fallback kodu yeniden erisilebilir.
+- ArenaFighter harici modelde renderer oldugunu kontrol ettikten sonra eski geometrik parcalari ve yumruk topunun renderer'ini gizler. Fist transform'u ve hasar mekanigi korunur.
+- ImportedFighterAnimationDriver mevcut controller state'lerini kontrol ederek saldiri secer, ardarda ayni secimi onler, klip suresini mevcut 0.9 saniyelik araliga sigdirir ve Idle'a donerken Animator hizini 1'e alir. Darbenin klip icindeki tam ani ile hasar ani henuz eslestirilmedi.
+- GiftEventSimulator paneli baslangicta katli; F1 veya ust sag dugme ile acilir. Klavye hediye kisayollari calismaya devam eder.
+- ArenaPresentationDirector tabelalari onceki boyutun dortte birine indirildi.
+- Dogrulama: dotnet build basarili, 0 hata; mevcut hipBob kullanilmiyor uyarisi kalir. Unity MCP ile Play Mode'a girildi; son Console error sorgusu 0 kayit.
+- Runtime incelemesi: Male Athlate Avatar valid=True, human=True, rootMotion=False; model mesh renderer'lari acik. Ilk testte PLAYER elenip inactive oldu (gorunmezlik bu testte elemeden kaynaklandi).
+- Son Play goruntusu Assets/Screenshots/arena-verified-start-1.png incelendi: arena icinde fighter'lar gorunuyor, panel kapali ve tabelalar kuculmus.
+- Dogal yuruyus, vurus temas kalitesi ve GTX 1650 performansi henuz dogrulanmadi. Gercek Walk klibi bulunmadi; yeni prosedurel yuruyus eklenmedi. Test sonunda Play Mode durduruldu.
+
+
 **Kayıt tarihi:** 16 Kasım 2026 — Male Athlate animasyon izolasyon düzeltmesi  
 **Unity:** 6000.6.7f1  
 **Render Pipeline:** Universal Render Pipeline (URP)  
@@ -457,3 +500,92 @@ Play Mode gözleminde iki bacağın da sabit kalmasının nedeni, önceki prosed
 - Bu değişiklik savaş hareketine, Rigidbody'ye, CapsuleCollider'a veya diğer karakterlere dokunmuyor.
 - C# problem kontrolü temiz; Unity Play Mode testi bu ortamda çalıştırılamadı.
 
+
+## 22. 16 Kasim 2026 - Unity MCP baglantisi
+
+- Unity MCP paketi ve proje baglanti ayarlari kontrol edildi.
+- Yerel MCP sunucusu `http://127.0.0.1:8080/mcp` adresinde calisiyor.
+- [`Tools/uvx.cmd`](./Tools/uvx.cmd) eklendi; kurulu uv surumunu Unity MCP paketinin bekledigi `uvx --from` cagrisiyla uyumlu calistiriyor.
+- [`UnityMcpAutoStart.cs`](./Assets/Editor/UnityMcpAutoStart.cs) guncellendi; uvx yolu proje yolundan turetiliyor ve Unity acildiginda MCP bridge baglantisi baslatiliyor.
+- Unity plugin sunucuya `ARENA CHAOS TIKTOK` oturumu olarak kaydoldu; 36 Unity araci senkronize edildi.
+- TCP/WebSocket dogrulamasi: `127.0.0.1:8080` uzerinde Unity ile `Established` baglanti mevcut.
+- Oyun kodu, sahne, fizik ve savas mekanikleri bu baglanti icin degistirilmedi.
+
+## 23. 16 Kasim 2026 - Arena presentation upgrade
+
+- [`ArenaPresentationDirector.cs`](./Assets/ArenaPresentationDirector.cs) eklendi. Seyirci tribünleri, arena tabelalari, neon aydinlatma ve hafif dekoratif sunum katmani runtime'da olusturuluyor.
+- Sunum katmani collider veya Rigidbody eklemiyor; neon isiklar golge kapali ve sayisi sinirli olacak sekilde performans odakli tutuldu.
+- Yumruk/kafa darbesi tespit edilerek kisa partikül VFX'i oynatiliyor.
+- Mega hediye patlamasina ek partikül patlamasi eklendi.
+- Yeni hediye oyunculari ring disindan giriyor, ring icine ilerliyor ve kamera kisa sinematik yaklasma yapip eski konumuna donuyor.
+- [`BattleArenaManager.cs`](./Assets/BattleArenaManager.cs) fighter listesini sunum katmanina salt-okunur olarak aciyor; spawn fiziÄŸi ve dovus kurallari korunuyor.
+- [`ArenaFighter.cs`](./Assets/ArenaFighter.cs) yeni karakterlere rastgele gorsel stil secimi uyguluyor; Rigidbody, CapsuleCollider ve AI hareketi degistirilmedi.
+- C# problem kontrolu temiz. Gercek Unity Play Mode goruntu testi bu oturumda otomatik olarak yapilamadi; Unity'de Play modunda tribün, neon, giris kamerasi ve partikuller kontrol edilmeli.
+
+## 24. 16 Kasim 2026 - Unity 6 partikül derleme hatasi
+
+- Play Mode'u kilitleyen hata [`ArenaPresentationDirector.cs`](./Assets/ArenaPresentationDirector.cs) icindeki `ParticleSystem.emission.SetBursts` cagrilarinda tek `Burst` gonderilmesiydi.
+- Unity 6 API uyumlulugu icin iki cagri `Burst[]` dizisi kullanacak sekilde duzeltildi.
+- Guncel C# problem kontrolunde hata bulunmuyor.
+- Onceki Editor.log icindeki CS1503 kayitlari tarihsel derleme loglaridir; mevcut kaynak kodda bu hata yoktur.
+
+## 25. 16 Kasim 2026 - Cartoon 3D gorsel stil
+
+- [`FighterVisualRig.cs`](./Assets/FighterVisualRig.cs) cartoon 3D oranlara uyarlandi: daha buyuk kafa, yuvarlak gozluler, goz bebekleri, ifadeli kaslar, burun, gulumseme, belirgin gogus kaslari, yuvarlak omuzlar ve daha kalin bacaklar.
+- Fighter materyalleri URP Lit uzerinde dusuk metallic ve yuksek smoothness ile daha yumusak cizgi film gorunumu aliyor.
+- Mevcut procedural animasyon fazlari, yumruk/headbutt gorsellestirmesi, Rigidbody, CapsuleCollider ve AI hareketi korunuyor.
+- [`ArenaPresentationDirector.cs`](./Assets/ArenaPresentationDirector.cs) seyircileri kutu yerine yuvarlak capsule vucut, kafa ve kollarla olusturacak sekilde guncellendi.
+- Seyirci/tribun sayisi, partikuller ve golgesiz neon isiklar GTX 1650 4 GB sinirina uygun tutuldu.
+- C# problem kontrolu temiz; Unity Play Mode gorsel testi bu oturumda otomatik yapilamadi.
+
+## 26. 16 Kasim 2026 - PLAYER cartoon rig entegrasyonu ve hata duzeltmesi
+
+- PLAYER'in Male Athlate kullanma nedeni tespit edildi: [`ArenaFighter.cs`](./Assets/ArenaFighter.cs) icinde mevcut [`FighterVisualRig.cs`](./Assets/FighterVisualRig.cs) `SetVisible(false)` ile gizleniyordu.
+- Male Athlate prefab hiyerarsisi, Animator, Rigidbody, CapsuleCollider ve fizik hareketi silinmedi.
+- Male Athlate Renderer'lari yalnizca PLAYER'in harici modelinde gizlendi; ayni FighterVisualRig PLAYER icin gorunur hale getirildi.
+- PLAYER artik diger fighter'larla ayni cartoon kafa, yuz ifadesi, kas, yumruk ve yuruyus gorselini kullaniyor.
+- `FighterVisualRig.CreatePart` icin local rotasyon parametresi eklendi; cartoon kas/kaş geometri derleme hatasi giderildi.
+- Guncel problem kontrolu temiz. Editor.log icindeki eski CS1501/CS1503 kayitlari onceki derlemelere aittir.
+
+## 27. 16 Kasim 2026 - Materyal cache ve gorunurluk duzeltmesi
+
+- `ArenaPresentationDirector` icindeki static materyal cache'i Play oturumu sonrasinda yok edilmis Unity materyalini geri donduruyordu; cache artik destroyed referanslari kullanmiyor.
+- `CreateText` materyal guvenligi eklendi; `MissingReferenceException` kaynagi giderildi.
+- [`ArenaFighter.cs`](./Assets/ArenaFighter.cs) icindeki built-in renderer gizleme islemi `Procedural Fighter Rig` altindaki cartoon parcalarini artik gizlemiyor.
+- PLAYER ve diger fighter karakterlerinin gorunurlugu korundu.
+- Kullanici adi etiketleri `0.22` yerine `0.14` karakter boyutuna ve daha kucuk fonta indirildi.
+- Guncel C# problem kontrolu temiz.
+
+## 28. 16 Kasim 2026 - Ikinci Play oturumunda pembe materyal duzeltmesi
+
+- Sorun ilk Play oturumunda duzgun, ikinci oturumda tum fighter'larin pembe olmasi olarak tespit edildi.
+- Kaynak, [`FighterVisualRig.cs`](./Assets/FighterVisualRig.cs) static materyal cache'inin Play durduktan sonra yok edilmis materyali tekrar kullanmasiydi.
+- Cache kontrolu `cached != null` ile guvenli hale getirildi; gecersiz materyal varsa yeni URP materyali olusturulacak.
+- Rigidbody, Collider, Animator, AI hareketi ve dovus sistemi degistirilmedi.
+- C# problem kontrolu temiz.
+
+## 29. 16 Kasim 2026 - EEJANAI fighter animasyon paketi PLAYER entegrasyonu
+
+- Kullanici tarafindan import edilen `Assets/EEJANAI_Team` klasoru incelendi. Paket yeni bir karakter koleksiyonu degil, `Free Those Who Fighter Animations` paketidir.
+- Paketteki `Commons/Model/EEJANAIbot.fbx` ornek humanoid fighter modeli, 18 dovus animasyonu ve bunlari iceren controller dosyalari bulundu.
+- Model FBX'i Humanoid olarak import edilmis; animasyon FBX'leri Generic import ayarina sahip ancak klipler Humanoid muscle egri verileri iceriyor. Animasyonlarin en guvenli kullanimi kendi `EEJANAIbot` iskeletiyle birlikte yapildi.
+- [`Assets/ImportedFighterAnimationDriver.cs`](./Assets/ImportedFighterAnimationDriver.cs) eklendi. Bu surucu yalnizca PLAYER harici gorselinin Animator state'leri arasinda secim yapar; gameplay root, Rigidbody, CapsuleCollider veya AI hareketini degistirmez.
+- [`Assets/ArenaFighter.cs`](./Assets/ArenaFighter.cs) yeni `EEJANAIbot` gorselini tanir, import edilen modelin collider/rigidbody bilesenlerini etkisizlestirir, root motion'i kapatir ve `akk.controller` ile gorsel animator'u calistirir.
+- [`Assets/ArenaStageOneSetup.cs`](./Assets/ArenaStageOneSetup.cs) yeni asset yolunu otomatik cozecek sekilde guncellendi. Eski Normalgon mantigi korunuyor; diger 9 fighter etkilenmiyor.
+- [`Assets/Scenes/SampleScene.unity`](./Assets/Scenes/SampleScene.unity) PLAYER gorsel referansi `EEJANAIbot.fbx`, controller referansi `akk.controller` olacak sekilde guncellendi. Orijinal paket dosyalari degistirilmedi.
+- [`Assembly-CSharp.csproj`](./Assembly-CSharp.csproj) yeni gorsel animation driver dosyasini derleme listesine alacak sekilde guncellendi.
+- `dotnet build Assembly-CSharp.csproj --no-restore`: 0 hata, 1 mevcut `VisualMotionDriver.hipBob` uyarisi.
+- Unity Play Mode bu ortamda calistirilamadi; modelin gorunmesi, animasyonlarin dogru oynamasi ve PLAYER fizik kokunun sabit kalmasi Unity icinde ayrica kontrol edilmeli.
+
+## 30. 16 Kasim 2026 - Toon Shader derleme hatasi ve FBX gorunurluk duzeltmesi
+
+- Unity Console'daki gercek derleme hatasi tespit edildi: `com.unity.toonshader@0.11.0-preview` paketindeki `PopupVE.cs(11,40)` Unity 6000.6.7f1 ile uyumsuzdu.
+- Toon Shader bu projede kullanilmadigi icin [`Packages/manifest.json`](./Packages/manifest.json) ve [`Packages/packages-lock.json`](./Packages/packages-lock.json) icinden kaldirildi.
+- Import paketinin her acilista Toon Shader'i tekrar kuran `ToonShaderInstaller.cs` dosyasi derleme disi birakildi; paket assetleri ve arena kodu korunuyor.
+- [`ArenaFighter.cs`](./Assets/ArenaFighter.cs) Unity 6 model asset wrapper'i durumunda asset yolundan GameObject cozup instantiate edecek fallback ile guncellendi.
+- Unity MCP Console kontrolu: Toon Shader CS0308 hatasi artik yok; yalnizca mevcut kod uyarilari ve MCP WebSocket uyarilari kaldi.
+- `dotnet build Assembly-CSharp.csproj --no-restore`: 0 hata.
+
+## 18 Kasım — ayrıntılı inceleme sonrası
+
+Kalıcı hediye kuyruğu, combo farkı/tekrar engelleme, ortak izleyici skoru ve kendi karakterinden puan kazanma koruması; yerel LIVE alıcısı/F2 eşleştirmeleri; profil önbelleği; taktik AI, sınıf ekipmanı, büyü sesleri ve dikey HUD güncellendi. 30 dakikalık test 10 tur ve sıfır hatayla bitti. Son düzeltmelerin test kapsamı ve gerçek yayın için kalan kabul adımları [LOCAL_RELEASE_NOTES.md](./LOCAL_RELEASE_NOTES.md) ve [AUDIT_RESOLUTION.md](./AUDIT_RESOLUTION.md) içindedir.
