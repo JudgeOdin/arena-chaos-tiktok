@@ -11,7 +11,9 @@ using Unity.Cinemachine;
 [Serializable] public sealed class ArenaPromoConfig
 {
     public string scenario,folder,ffmpeg;
-    public int size=960,fps=60;
+    public int size=960,fps=60,width,height;
+    public int Width => width>0?width:size;
+    public int Height => height>0?height:size;
     public float seconds=12;
 }
 
@@ -29,7 +31,7 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
     ArenaPromoConfig config;
     CaptureReport report;
     BattleArenaManager arena;
-    ArenaFighter hero;
+    ArenaFighter hero, opponent;
     Process encoder;
     RenderTexture target;
     Texture2D pixels;
@@ -46,14 +48,44 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
         var hud=GameObject.Find("Broadcast HUD");if(hud!=null)hud.SetActive(false);
         var labels=arena.GetComponent<ArenaNameplateLayout>();if(labels!=null)labels.enabled=false;
         foreach(var actor in arena.Fighters)actor.SetNameplateVisible(false);
-        report=new CaptureReport{status="RECORDING",scenario=config.scenario,fps=config.fps,width=config.size,height=config.size};
+        report=new CaptureReport{status="RECORDING",scenario=config.scenario,fps=config.fps,width=config.Width,height=config.Height};
         var content=ArenaContent.Load();
         if(content!=null)
         {
             report.music=AssetDatabase.GetAssetPath(content.battleMusic);
             if(content.punches!=null&&content.punches.Length>0)report.punch=AssetDatabase.GetAssetPath(content.punches[0]);
         }
-        if(config.scenario=="classes")
+        bool duelShot=config.scenario=="king" || config.scenario=="infection";
+        if(config.scenario=="infection")
+        {
+            opponent=arena.Fighters[0];
+            const string id="arena-test:promo-guard";
+            if(!arena.TryJoinFromLike(id,"Bekçi",null)){Fail("Could not stage infection viewer");yield break;}
+            hero=arena.FindViewerFighter(id);
+            if(hero==null){Fail("Infection viewer missing");yield break;}
+            while(hero.IsEntering) yield return null;
+            hero.enabled=false;
+            Position(hero,new Vector3(.65f,1,0));
+            Position(opponent,new Vector3(-1.2f,1,0));
+            FaceEachOther();
+            hero.SetNameplateVisible(false);
+            foreach(var actor in arena.Fighters)
+                if(actor!=hero && actor!=opponent) actor.gameObject.SetActive(false);
+        }
+        else if(config.scenario=="king")
+        {
+            foreach(var actor in arena.Fighters)
+            {
+                if(actor.DisplayName=="Mavi Kral") hero=actor;
+                else if(actor.DisplayName=="Kırmızı Kral") opponent=actor;
+                else actor.gameObject.SetActive(false);
+            }
+            if(hero==null||opponent==null){Fail("Two kings required");yield break;}
+            Position(hero,new Vector3(-.95f,1,0));
+            Position(opponent,new Vector3(.95f,1,0));
+            FaceEachOther();
+        }
+        else if(config.scenario=="classes")
         {
             foreach(var actor in arena.Fighters)actor.gameObject.SetActive(false);
             var archer=arena.SpawnClassFighter("promo-archer","Okcu",null,ArenaFighterRole.Archer);
@@ -83,16 +115,38 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
         var camera=Camera.main;var brain=camera.GetComponent<CinemachineBrain>();if(brain!=null)brain.enabled=false;
         camera.rect=new Rect(0,0,1,1);camera.fieldOfView=config.scenario=="meteor"?48:45;
         camera.transform.position=config.scenario=="meteor"?new Vector3(0,12,-12):config.scenario=="fire"?new Vector3(0,6.8f,-8):new Vector3(0,7.5f,-9.5f);
-        camera.transform.LookAt(new Vector3(0,.8f,0));
+        if(duelShot)
+        {
+            camera.fieldOfView=43;
+            camera.transform.position=new Vector3(1.5f,4.0f,6.8f);
+        }
+        camera.transform.LookAt(new Vector3(0,1.12f,0));
         if(config.scenario!="meteor")typeof(BattleArenaManager).GetField("arenaRadius",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance).SetValue(arena,5f);
         foreach(var actor in arena.Fighters)if(actor!=null&&actor.gameObject.activeSelf){actor.SetNameplateVisible(false);actor.enabled=true;}
         for(int i=0;i<4;i++)yield return new WaitForEndOfFrame();
-        if(Screen.width!=config.size||Screen.height!=config.size){Fail("Unexpected Game View size: "+Screen.width+"x"+Screen.height);yield break;}
+        if(Screen.width!=config.Width||Screen.height!=config.Height){Fail("Unexpected Game View size: "+Screen.width+"x"+Screen.height);yield break;}
         if(!OpenEncoder()){yield break;}
         int total=Mathf.RoundToInt(config.seconds*config.fps),lastContacts=0,lastArrows=0;
         var drivers=UnityEngine.Object.FindObjectsByType<KayKitFighterDriver>();
         for(int frame=0;frame<total;frame++)
         {
+            if(config.scenario=="infection"&&frame==Mathf.RoundToInt(config.fps*1.45f))
+            {
+                hero.TakeDamage(10000,opponent);
+                report.cues.Add(new Cue{kind="infection",time=1.45f});
+            }
+            if(config.scenario=="king"&&frame==Mathf.RoundToInt(config.fps*3.4f))
+            {
+                opponent.TakeDamage(10000,hero);
+                report.cues.Add(new Cue{kind="king-down",time=3.4f});
+            }
+            if(duelShot && frame<config.fps*3)
+            {
+                Vector3 start=new Vector3(1.5f,4.0f,6.8f);
+                Vector3 finish=new Vector3(1.2f,3.1f,5.7f);
+                camera.transform.position=Vector3.Lerp(start,finish,frame/(config.fps*3f));
+                camera.transform.LookAt(new Vector3(0,1.12f,0));
+            }
             if(config.scenario=="meteor"&&frame==config.fps*3)
             {hero.PowerUps.Activate(ArenaPower.Meteor);report.cues.Add(new Cue{kind="meteor-cast",time=3});report.cues.Add(new Cue{kind="meteor-impact",time=4});}
             if(config.scenario=="fire"&&frame==config.fps/2)
@@ -103,7 +157,7 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
             {
                 ScreenCapture.CaptureScreenshotIntoRenderTexture(target);
                 var previous=RenderTexture.active;RenderTexture.active=target;
-                pixels.ReadPixels(new Rect(0,0,config.size,config.size),0,0,false);RenderTexture.active=previous;
+                pixels.ReadPixels(new Rect(0,0,config.Width,config.Height),0,0,false);RenderTexture.active=previous;
                 pixels.GetRawTextureData<byte>().CopyTo(buffer);encoder.StandardInput.BaseStream.Write(buffer,0,buffer.Length);
                 report.frames++;
                 int contacts=0;foreach(var driver in drivers)if(driver!=null)contacts+=driver.ContactHitCount;
@@ -120,6 +174,12 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
         report.status=encoder.ExitCode==0?"PASS":"FAILED";completed=true;
         WriteReport();Cleanup();EditorApplication.isPlaying=false;
     }
+    void FaceEachOther()
+    {
+        hero.transform.rotation=Quaternion.LookRotation(opponent.transform.position-hero.transform.position);
+        opponent.transform.rotation=Quaternion.LookRotation(hero.transform.position-opponent.transform.position);
+    }
+
     void Position(ArenaFighter actor,Vector3 position)
     {actor.transform.position=position;var body=actor.GetComponent<Rigidbody>();body.position=position;body.linearVelocity=Vector3.zero;}
     bool OpenEncoder()
@@ -127,10 +187,10 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
         try
         {
             Directory.CreateDirectory(config.folder);
-            target=new RenderTexture(config.size,config.size,0,RenderTextureFormat.ARGB32);target.Create();
-            pixels=new Texture2D(config.size,config.size,TextureFormat.RGB24,false);buffer=new byte[config.size*config.size*3];
+            target=new RenderTexture(config.Width,config.Height,0,RenderTextureFormat.ARGB32);target.Create();
+            pixels=new Texture2D(config.Width,config.Height,TextureFormat.RGB24,false);buffer=new byte[config.Width*config.Height*3];
             var output=Path.Combine(config.folder,config.scenario+"_raw.mp4");
-            var start=new ProcessStartInfo(config.ffmpeg,"-hide_banner -loglevel warning -y -f rawvideo -pixel_format rgb24 -video_size "+config.size+"x"+config.size+" -framerate "+config.fps+" -i pipe:0 -an -c:v libx264 -preset veryfast -crf 17 -pix_fmt yuv420p -movflags +faststart \""+output+"\"");
+            var start=new ProcessStartInfo(config.ffmpeg,"-hide_banner -loglevel warning -y -f rawvideo -pixel_format rgb24 -video_size "+config.Width+"x"+config.Height+" -framerate "+config.fps+" -i pipe:0 -an -c:v libx264 -preset veryfast -crf 17 -pix_fmt yuv420p -movflags +faststart \""+output+"\"");
             start.UseShellExecute=false;start.CreateNoWindow=true;start.RedirectStandardInput=true;start.RedirectStandardError=true;
             encoder=new Process{StartInfo=start};encoder.ErrorDataReceived+=(sender,args)=>{if(args.Data!=null)File.AppendAllText(Path.Combine(config.folder,config.scenario+"_encoder.log"),args.Data+"\n");};
             encoder.Start();encoder.BeginErrorReadLine();return true;

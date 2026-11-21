@@ -1,0 +1,12 @@
+PASSED
+Survival: start, end, and scene change requested
+Tournament: start, end, and scene change requested
+King: start, end, and scene change requested
+Zombies: start, end, and scene change requested
+Gold: start, end, and scene change requested
+Bridge: start, end, and scene change requested
+Giant: start, end, and scene change requested
+Bounty: start, end, and scene change requested
+Classes: start, end, and scene change requested
+Rematch: start, end, and scene change requested
+GuestChampion: start, end, and scene change requested

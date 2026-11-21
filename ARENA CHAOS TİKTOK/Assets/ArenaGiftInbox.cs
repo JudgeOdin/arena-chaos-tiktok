@@ -16,7 +16,8 @@ public sealed class ArenaGiftInbox : MonoBehaviour
     [Serializable] sealed class Delivery { public ArenaGiftEvent gift;public int remaining; }
     [Serializable] sealed class Seen {public string id;public int count;}
     [Serializable] sealed class State { public List<Delivery> pending=new List<Delivery>();public List<Seen> seen=new List<Seen>();public int delivered; }
-    static ArenaGiftInbox instance;
+    static ArenaGiftInbox instance, local;
+    bool isLocal;
     State state=new State();
     readonly Dictionary<string,Seen> seen=new Dictionary<string,Seen>();
     string path;
@@ -24,6 +25,16 @@ public sealed class ArenaGiftInbox : MonoBehaviour
     int cursor;
     public string LastError { get; private set; }
     public int DeliveredUnits=>state.delivered;
+    public string LastDelivery { get; private set; }
+    public string PendingStatus
+    {
+        get
+        {
+            if (state.pending.Count == 0) return "";
+            var next = state.pending[0];
+            return next.gift.displayName + " / " + ArenaGiftGuide.Describe(next.gift.type).Name + " ×" + next.remaining;
+        }
+    }
     public static ArenaGiftInbox CreateStore(string filename,bool persistent)
     {
         if(Path.GetFileName(filename)!=filename)throw new ArgumentException("Store filename required");
@@ -31,9 +42,24 @@ public sealed class ArenaGiftInbox : MonoBehaviour
         if(persistent)DontDestroyOnLoad(obj);inbox.path=Path.Combine(Application.persistentDataPath,filename);inbox.LoadState();return inbox;
     }
 #if UNITY_EDITOR
-    public void UseTestStore(string file){path=file;LoadState();}
+    public void UseTestStore(string file){isLocal=false;path=file;LoadState();}
 #endif
     public int PendingUnits { get {int count=0;foreach(var delivery in state.pending)count+=delivery.remaining;return count;} }
+    public static ArenaGiftInbox Local
+    {
+        get
+        {
+            if (local == null)
+            {
+                var obj = new GameObject("Session-only gift simulator");
+                local = obj.AddComponent<ArenaGiftInbox>();
+                local.isLocal = true;
+                DontDestroyOnLoad(obj);
+            }
+            return local;
+        }
+    }
+
     public static ArenaGiftInbox Instance
     {
         get
@@ -42,9 +68,14 @@ public sealed class ArenaGiftInbox : MonoBehaviour
             return instance;
         }
     }
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void Reset(){instance=null;}
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] static void Reset(){instance=null;local=null;}
     void Load()
     {
+        if (ArenaLiveBridge.IsOffline)
+        {
+            isLocal=true;
+            return;
+        }
         path=Path.Combine(Application.persistentDataPath,Application.isEditor?"gift-inbox-editor.json":"gift-inbox.json");
         LoadState();
     }
@@ -74,6 +105,7 @@ public sealed class ArenaGiftInbox : MonoBehaviour
     }
     bool Save()
     {
+        if (isLocal) return true;
         try
         {
             Directory.CreateDirectory(Path.GetDirectoryName(path));string temporary=path+".tmp";
@@ -94,9 +126,23 @@ public sealed class ArenaGiftInbox : MonoBehaviour
         var mark=existing??new Seen{id=key};mark.count=total;
         if(existing==null){seen.Add(key,mark);state.seen.Add(mark);}
         var delivery=new Delivery{gift=gift,remaining=units};state.pending.Add(delivery);
-        if(Save())return true;
+        if(Save())
+        {
+            if (!isLocal) ArenaBroadcastMetrics.Gift(gift.viewerId);
+            ArenaBroadcastHUD.NotifyGift(gift.displayName,"Hediye kuyruğa alındı",PendingUnits+" birim bekliyor");
+            return true;
+        }
         state.pending.Remove(delivery);mark.count=previous;if(existing==null){state.seen.Remove(mark);seen.Remove(key);}return false;
     }
+    public void ClearLocal()
+    {
+        if (!isLocal) return;
+        state = new State();
+        seen.Clear();
+        cursor = 0;
+        LastDelivery = null;
+    }
+
     void Update()
     {
         if(Time.timeScale==0||Time.unscaledTime<nextDelivery||state.pending.Count==0)return;
@@ -110,10 +156,11 @@ public sealed class ArenaGiftInbox : MonoBehaviour
             if(!arena.TryApplyGiftToViewer(gift.type,gift.viewerId,gift.displayName,gift.avatarUrl))continue;
             delivery.remaining--;
             state.delivered++;
+            LastDelivery = gift.displayName + " / " + ArenaGiftGuide.Describe(gift.type).Name;
             if(delivery.remaining==0)state.pending.RemoveAt(index);
             if(!Save()){enabled=false;Debug.LogError(LastError);}
             break;
         }
     }
-    void OnDestroy(){if(instance==this)instance=null;}
+    void OnDestroy(){if(instance==this)instance=null;if(local==this)local=null;}
 }

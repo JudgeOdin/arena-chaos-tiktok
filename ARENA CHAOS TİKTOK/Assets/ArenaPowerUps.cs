@@ -110,7 +110,7 @@ public sealed class ArenaPowerUps : MonoBehaviour
         for(int i=0;i<count;i++)
         {
             var other=overlaps[i].GetComponentInParent<ArenaFighter>();
-            if(other==null||other==fighter||other==excluded||!other.IsAlive||other.IsEntering||!victims.Add(other))continue;
+            if(other==null||!fighter.Arena.CanAttack(fighter,other)||other==excluded||!other.IsAlive||other.IsEntering||!victims.Add(other))continue;
             if(damage>0)other.TakeDamage(damage,fighter);if(slow)other.PowerUps.Slow(tuning!=null?tuning.auraSlowDuration:1.5f);
         }
     }
@@ -119,7 +119,21 @@ public sealed class ArenaPowerUps : MonoBehaviour
         // The cast survives the sender's death or destruction during the fall.
         var arena=fighter!=null?fighter.Arena:null;
         var caster=fighter;
+        int casterSide=arena!=null?arena.MeteorSide(caster):-1;
+        bool area=arena!=null && arena.AreaMeteor;
         Vector3 landing=Vector3.up*.12f;
+        if (area)
+        {
+            foreach (var opponent in arena.Fighters)
+            {
+                if (opponent==null || !opponent.IsAlive || !arena.MeteorTarget(caster,opponent,casterSide)) continue;
+                landing=new Vector3(opponent.transform.position.x,.12f,opponent.transform.position.z);
+                break;
+            }
+            var telegraph=arena.MarkMeteor(landing,caster);
+            yield return new WaitForSeconds(2f);
+            Destroy(telegraph,1f);
+        }
         var content=ArenaContent.Load();
         var meteor=new GameObject("Falling meteor flame");meteor.transform.position=landing+new Vector3(-5,18,-3);
         var rock=GameObject.CreatePrimitive(PrimitiveType.Sphere);rock.name="Meteor core";Destroy(rock.GetComponent<Collider>());rock.transform.SetParent(meteor.transform,false);rock.transform.localScale=new Vector3(1.5f,1.8f,1.35f);
@@ -130,10 +144,12 @@ public sealed class ArenaPowerUps : MonoBehaviour
         float elapsed=0;
         while(elapsed<1){elapsed+=Time.deltaTime;meteor.transform.position=Vector3.Lerp(landing+new Vector3(-5,18,-3),landing,elapsed);yield return null;}
         particle.Stop(false,ParticleSystemStopBehavior.StopEmitting);Destroy(meteor,.4f);
-        if(arena!=null&&!arena.IsFinished)
+        if (arena != null && !arena.IsFinished && (!arena.IsTournament || (arena.DuelInProgress && caster != null)))
         {
             var snapshot=new List<ArenaFighter>(arena.Fighters);
-            foreach(var opponent in snapshot)if(opponent!=null&&opponent!=caster&&opponent.IsAlive)opponent.EliminateFromMeteor(caster);
+            foreach(var opponent in snapshot)if(arena.MeteorTarget(caster,opponent,casterSide)&&opponent.IsAlive &&
+                (!area || Vector3.ProjectOnPlane(opponent.transform.position-landing,Vector3.up).sqrMagnitude<=12.25f))
+                    opponent.EliminateFromMeteor(caster);
         }
         ArenaAudioEffects.MeteorExplosion(landing);
     }

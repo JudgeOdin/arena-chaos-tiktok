@@ -15,11 +15,11 @@ public sealed class ArenaNameplateLayout : MonoBehaviour
         if(arena==null||Camera.main==null||Time.unscaledTime<nextLayout)return;
         nextLayout=Time.unscaledTime+.12f;candidates.Clear();occupied.Clear();
         foreach(var actor in arena.Fighters)if(actor!=null){actor.SetNameplateVisible(false);if(actor.IsAlive&&!actor.IsEntering)candidates.Add(actor);}
-        candidates.Sort((a,b)=>{int c=a.IsBot.CompareTo(b.IsBot);return c!=0?c:a.Health.CompareTo(b.Health);});
+        candidates.Sort((a,b)=>{int c=b.IsRoyal.CompareTo(a.IsRoyal);if(c==0)c=a.IsBot.CompareTo(b.IsBot);return c!=0?c:a.Health.CompareTo(b.Health);});
         foreach(var actor in candidates)
         {
             if(occupied.Count>=labelBudget)break;
-            var point=Camera.main.WorldToScreenPoint(actor.transform.position+Vector3.up*1.48f);
+            var point=Camera.main.WorldToScreenPoint(actor.NameplatePosition);
             if(point.z<0||point.x<30||point.x>Screen.width-30||point.y<30||point.y>Screen.height-30)continue;
             float scale=Screen.height/1080f;var rect=new Rect(point.x-65*scale,point.y-10*scale,130*scale,26*scale);
             bool overlaps=false;foreach(var previous in occupied)if(previous.Overlaps(rect)){overlaps=true;break;}

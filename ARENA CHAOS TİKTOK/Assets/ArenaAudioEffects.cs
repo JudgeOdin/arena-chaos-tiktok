@@ -12,6 +12,8 @@ public sealed class ArenaAudioEffects : MonoBehaviour
     readonly AudioClip[] spellClips=new AudioClip[5];
     ArenaContent content;
     Material sparkMaterial;
+    AudioClip infectionClip;
+    float nextInfection;
     bool ownsMaterial;
     float nextBlast, nextSound;
     Vector3 blastOrigin;
@@ -24,6 +26,7 @@ public sealed class ArenaAudioEffects : MonoBehaviour
         instance=this;content=ArenaContent.Load();audioSource=gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake=false;audioSource.volume=effectsVolume;
         musicSource=ArenaMusicPlayer.GetOrCreate(content!=null?content.battleMusic:null);
+        infectionClip=Resources.Load<AudioClip>("ArenaChaos/Infection/Reanimation");
         string[] names={"Fire","Ice","Lightning","Magic","Meteor"};
         for(int i=0;i<names.Length;i++)spellClips[i]=Resources.Load<AudioClip>("ArenaChaos/SpellAudio/"+names[i]);
         Shader shader=Shader.Find("Universal Render Pipeline/Particles/Unlit");
@@ -74,6 +77,19 @@ public sealed class ArenaAudioEffects : MonoBehaviour
         bool fire=power==ArenaPower.Fire||power==ArenaPower.Explosive;
         instance.Burst("Power impact",fire?instance.content.flameMaterial:instance.sparkMaterial,color,fire?24:20,.45f,fire?.65f:.25f,.15f,fire?3:4);
     }
+    public static void Infection(Vector3 position)
+    {
+        if (instance == null) return;
+        instance.blastOrigin = position + Vector3.down*.7f;
+        instance.Burst("Infection spores",instance.sparkMaterial,new Color(.61f,.85f,.31f),22,.72f,.14f,.24f,2.1f);
+        instance.Burst("Infection dust",instance.sparkMaterial,new Color(.25f,.36f,.17f),13,.63f,.45f,.23f,1.1f);
+        if (instance.infectionClip != null && Time.time >= instance.nextInfection)
+        {
+            instance.nextInfection = Time.time+.25f;
+            instance.audioSource.PlayOneShot(instance.infectionClip,.72f);
+        }
+    }
+
     public static void Step()
     {
         if(instance==null||instance.content==null||Time.time<instance.nextSound)return;
@@ -154,10 +170,13 @@ public sealed class ArenaAudioEffects : MonoBehaviour
     void OnDestroy(){if(instance==this)instance=null;if(ownsMaterial&&sparkMaterial!=null)Destroy(sparkMaterial);}
     void Update()
     {
-        audioSource.volume=effectsVolume;
+        float announcerGain = ArenaAnnouncer.BackgroundGain;
+        audioSource.volume = effectsVolume * Mathf.Lerp(.55f, 1f, announcerGain);
         var arena=GetComponent<BattleArenaManager>();
         float intensity=arena==null?1:Mathf.Lerp(.55f,1,Mathf.Clamp01(arena.LivingCount/12f));
-        musicSource.volume=Mathf.MoveTowards(musicSource.volume,musicVolume*intensity,Time.unscaledDeltaTime*.08f);
+        float duckRate = announcerGain < 1f ? 4f : .24f;
+        musicSource.volume = Mathf.MoveTowards(musicSource.volume,
+            musicVolume * intensity * announcerGain, Time.unscaledDeltaTime * duckRate);
         if(Time.timeScale==0){if(musicSource.isPlaying)musicSource.Pause();}
         else if(musicSource.clip!=null&&!musicSource.isPlaying)musicSource.UnPause();
     }

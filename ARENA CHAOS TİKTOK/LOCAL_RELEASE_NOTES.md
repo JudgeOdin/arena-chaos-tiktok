@@ -77,3 +77,19 @@ Yerel gerçek WebSocket testi (`LiveTransport.txt`): el sıkışma, parçalı JS
 
 F2 alanlarını değiştirmek aktif hediye eşleştirmesini anında değiştirmez; yeni taslak ancak doğrulama ve başarılı kayıttan sonra uygulanır. Bilinmeyen olaylar silinmeden inceleme kaydında bekler.
 
+## 19 Kasım 2026 — Yayın modları
+
+Mod seçimi, rotasyon, sohbet komutları, hediye hedefleme ve klip adayları için [Arena modları ve yayın operatörü](ARENA_MODES.md) kılavuzuna bakın.
+
+## Yayın güvenliği ve görüntü ölçeği
+
+- F1 hediye kısayolları yalnızca yerel test paneli açıkken çalışır. F1 ve F2 test hediyeleri ayrı bir oturum kuyruğuna gider. F2 altında LIVE ve test sayıları ayrı görünür. Test kuyruğunu temizlemek yalnızca test olaylarını kaldırır.
+- Çevrimdışı başlatma, kısa oyuncu testi ve uzun yük testi otomatik LIVE bağlantısını kapatır. Çevrimdışı oturum gerçek hediye dosyasını ve yayın istatistiklerini kullanmaz. Yerel test oyuncuları yayın ölçümlerinden hariç tutulur.
+- F2’de 3B görüntü ölçeği %100, %85 veya %70 seçilebilir. HUD pencerenin tam çözünürlüğünde kalır. Varsayılan %100’dür. Başlatma komutuyla geçici ölçüm için -arenaRenderPercent 85 kullanılabilir.
+- Alan Meteoru işaretlendiğinde savaşçılar tehlikeden uzaklaşır. Takımlı modlarda gecikmeli vuruş, gönderen elense bile atıldığı andaki takım bilgisini kullanır.
+
+Son denetimde 11 modun tur başlangıcı, bitişi ve sahne geçişi doğrulandı. Hediye güvenilirliği, güçler, sınıflar, tur döngüsü, izleyici profili, normal maç ve içerik denetimi geçti. Windows build raporu 0 hata ve 0 uyarı gösterdi.
+
+Intel UHD ve 20 dövüşçüyle 10 saniyelik Windows ölçümleri: [1920×1080 %100](Builds/TestResults/Audit-Wide-100.txt) 19,2 FPS, [1920×1080 %70](Builds/TestResults/Audit-Wide-70.txt) 30,9 FPS, [540×960 %100](Builds/TestResults/Audit-Portrait-100.txt) 53,8 FPS. HUD ve arena kadrajı [dikey görüntüde](Builds/TestResults/Audit-Portrait-100.png) ve [düşük 3B ölçekte](Builds/TestResults/Audit-Wide-70.png) kontrol edildi.
+
+[210 saniyelik dikey karma yük testi](Builds/TestResults/Audit-Soak.txt) iki turu, en fazla 50 canlı dövüşçüyü ve sıfır çalışma zamanı hatasını kaydetti. Test bittiğinde bekleyen test hediyesi sıfırdı. Canlı hesap ve OBS/LIVE Studio ile birlikte çalışma ayrı yayın doğrulamasıdır.

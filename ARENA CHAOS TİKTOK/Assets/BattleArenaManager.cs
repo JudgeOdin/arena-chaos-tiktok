@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BattleArenaManager : MonoBehaviour
+public partial class BattleArenaManager : MonoBehaviour
 {
     [SerializeField] private int fighterCount = 10;
     [SerializeField] private float arenaRadius = 8f;
@@ -23,6 +23,7 @@ public class BattleArenaManager : MonoBehaviour
     readonly List<Standing> ranked=new List<Standing>();
     readonly Dictionary<string,Standing> standings=new Dictionary<string,Standing>();
     private readonly List<ArenaFighter> fighters = new List<ArenaFighter>(50);
+    readonly HashSet<string> roundEntrants = new HashSet<string>();
     private string statusMessage = "Hazırlanıyor...";
     private ArenaFighter champion;
     private ArenaFighter playerFighter;
@@ -70,6 +71,7 @@ public class BattleArenaManager : MonoBehaviour
     private void Start()
     {
         Application.runInBackground = true;
+        ArenaAnnouncer.GetOrCreate().Preview(ArenaAnnouncer.IntroLine);
         string[] args = System.Environment.GetCommandLineArgs();
         for(int i=0;i<args.Length-1;i++)
             if(args[i]=="-arenaFighters" && int.TryParse(args[i+1],out int count))fighterCount=Mathf.Clamp(count,2,50);
@@ -77,7 +79,12 @@ public class BattleArenaManager : MonoBehaviour
         roundStartedAt=Time.time;
         int seconds=PlayerPrefs.GetInt("ArenaRoundSeconds",MatchSettings!=null?(int)MatchSettings.roundLength:180);
         roundEndsAt=Time.time+(seconds==300?300:180);
-        SpawnFighters();
+        if (IsTournament)
+        {
+            StartTournament();
+            return;
+        }
+        StartMode();
     }
 
     private void SpawnFighters()
@@ -137,50 +144,80 @@ public class BattleArenaManager : MonoBehaviour
 
     public ArenaFighter SpawnGiftFighter(string displayName, Color color, int modelIndex = -1)
     {
+        if (IsTournament) return null;
         var entranceDirector = GetComponent<ArenaPresentationDirector>();
         if(entranceDirector != null && !entranceDirector.CanAcceptEntrance)
         { statusMessage="Entrance queue full"; return null; }
         if(LivingCount>=50){statusMessage="Arena dolu: en fazla 50 aktif dövüşçü.";return null;}
         if(IsFinished){statusMessage="Tur sonucu gösteriliyor; sonraki turu bekle.";return null;}
-        fighterCount++;
-
         int entranceSide = Random.value < 0.5f ? -1 : 1;
         Vector3 position = new Vector3(entranceSide * (arenaRadius + 3.2f), 1f, 0f);
+        ArenaFighter fighter = CreateViewerFighter(displayName, color, modelIndex, position);
+        fighter.enabled = false;
+        if (entranceDirector != null) entranceDirector.PlayEntrance(fighter, position);
+        else
+        {
+            fighter.transform.position = new Vector3(entranceSide * (arenaRadius - 2f), 1f, 0f);
+            fighter.enabled = true;
+        }
+        statusMessage = displayName + " ARENAYA KATILDI!";
+        return fighter;
+    }
+
+    ArenaFighter CreateViewerFighter(string displayName, Color color, int modelIndex, Vector3 position, ArenaFighter.Look look = ArenaFighter.Look.Standard)
+    {
+        fighterCount++;
         GameObject fighterObject = GameObject.CreatePrimitive(PrimitiveType.Capsule);
         fighterObject.name = "Gift Fighter " + fighterCount;
         fighterObject.transform.position = position;
         fighterObject.transform.localScale = Vector3.one * 0.9f;
 
         ArenaFighter fighter = fighterObject.AddComponent<ArenaFighter>();
-        fighter.Initialize(this, displayName, color);
-        if (ArenaContent.Load() != null || firstFighterVisualAsset != null)
+        fighter.Initialize(this, displayName, color, look);
+        if (look == ArenaFighter.Look.Standard && (ArenaContent.Load() != null || firstFighterVisualAsset != null))
         {
             AttachSelectedVisual(fighter, modelIndex>=0?modelIndex:(Random.value<.5f?0:Random.Range(4,6)));
         }
-        fighter.enabled = false;
         fighters.Add(fighter);
-        ArenaPresentationDirector presentation = GetComponent<ArenaPresentationDirector>();
-        if (presentation != null) presentation.PlayEntrance(fighter, position);
-        else { fighter.transform.position = new Vector3(entranceSide * (arenaRadius - 2f), 1f, 0f); fighter.enabled = true; }
-        statusMessage = displayName + " GÜL İLE ARENAYA KATILDI!";
         return fighter;
     }
 
     public ArenaFighter SpawnGiftFighter(string viewerId,string displayName,string avatarUrl,Color color)
     {
-        var fighter=SpawnGiftFighter(displayName.StartsWith("@")?displayName:"@"+displayName,color);
-        if(fighter!=null)fighter.SetViewerProfile(viewerId,avatarUrl);
+        if (IsTournament || IsFinished || string.IsNullOrWhiteSpace(viewerId)) return null;
+        var existing = FindViewerFighter(viewerId);
+        if (existing != null || roundEntrants.Contains(viewerId)) return existing;
+        var fighter = SpawnGiftFighter(displayName.StartsWith("@") ? displayName : "@" + displayName, color);
+        if (fighter != null)
+        {
+            fighter.SetViewerProfile(viewerId, avatarUrl);
+            roundEntrants.Add(viewerId);
+            RegisterModeActor(fighter);
+            if (!fighter.IsEntering) ArenaAnnouncer.PlayerEntered(fighter);
+        }
         return fighter;
     }
     public ArenaFighter SpawnClassFighter(string viewerId,string displayName,string avatarUrl,ArenaFighterRole role)
     {
         var roster=Resources.Load<ArenaGiftRoster>("ArenaChaos/GiftRoster");var tier=roster!=null?roster.Find(role):null;
         if(tier==null){statusMessage="Karakter sınıfı kataloğu eksik";return null;}
-        var fighter=SpawnGiftFighter(displayName.StartsWith("@")?displayName:"@"+displayName,Color.white,tier.modelIndex);
-        if(fighter!=null)
+        if (IsFinished || string.IsNullOrWhiteSpace(viewerId) || (IsTournament && !DuelInProgress)) return null;
+        var fighter = FindViewerFighter(viewerId);
+        bool isNew = fighter == null;
+        if (isNew)
         {
-            fighter.SetViewerProfile(viewerId,avatarUrl);fighter.ConfigureRole(tier);
-            ArenaBroadcastHUD.NotifyGift(displayName,tier.label,"Yeni sınıf arenaya katılıyor");
+            if (IsTournament || roundEntrants.Contains(viewerId)) return null;
+            fighter = SpawnGiftFighter(displayName.StartsWith("@") ? displayName : "@" + displayName, Color.white, tier.modelIndex);
+            if (fighter == null) return null;
+            roundEntrants.Add(viewerId);
+        }
+        fighter.SetViewerProfile(viewerId, avatarUrl ?? fighter.AvatarUrl);
+        if (isNew) RegisterModeActor(fighter);
+        if (isNew && !fighter.IsEntering) ArenaAnnouncer.PlayerEntered(fighter);
+        if (fighter.Role != role)
+        {
+            fighter.ConfigureRole(tier);
+            ArenaBroadcastHUD.NotifyGift(displayName, tier.label, fighter.DisplayName);
         }
         return fighter;
     }
@@ -190,6 +227,24 @@ public class BattleArenaManager : MonoBehaviour
             if(fighters[i]!=null&&fighters[i].IsAlive&&fighters[i].ViewerId==viewerId)return fighters[i];
         return null;
     }
+    public bool TryJoinFromLike(string viewerId, string displayName, string avatarUrl)
+    {
+        if (IsFinished || string.IsNullOrWhiteSpace(viewerId)) return false;
+        if (IsTournament) return RegisterTournamentViewer(viewerId, displayName, avatarUrl);
+        if (Mode == ArenaMode.Classes && !ModeCombatOpen) return QueueEntry(viewerId,displayName,avatarUrl);
+        if (roundEntrants.Contains(viewerId)) return true;
+
+        if (FindViewerFighter(viewerId) == null)
+        {
+            Color color = Color.HSVToRGB(Mathf.Repeat(fighterCount * 0.137f, 1f), 0.78f, 1f);
+            var fighter = SpawnGiftFighter(viewerId, displayName, avatarUrl, color);
+            if (fighter == null) return false;
+            statusMessage = fighter.DisplayName + " BEĞENİYLE ARENAYA KATILDI!";
+        }
+
+        return true;
+    }
+
     public void ApplyGiftToPlayer(GiftEventType giftType,string senderName)
     {ApplyGiftToViewer(giftType,senderName.TrimStart('@'),senderName,null);}
 
@@ -198,6 +253,13 @@ public class BattleArenaManager : MonoBehaviour
     public bool TryApplyGiftToViewer(GiftEventType giftType,string viewerId,string senderName,string avatarUrl)
     {
         if(IsFinished||string.IsNullOrWhiteSpace(viewerId))return false;
+        if (IsTournament && !DuelCombatStarted) return false;
+        if (!IsTournament && TryModeGift(giftType, viewerId, senderName, avatarUrl, out bool modeApplied))
+        {
+            if (modeApplied) ArenaBroadcastHUD.RecordGift(senderName);
+            return modeApplied;
+        }
+        if (IsTournament && (giftType == GiftEventType.TeamShield || giftType == GiftEventType.NextRule)) return false;
         if(giftType==GiftEventType.ArcherEntry||giftType==GiftEventType.GuardianEntry)
         {
             var role=giftType==GiftEventType.ArcherEntry?ArenaFighterRole.Archer:ArenaFighterRole.Guardian;
@@ -206,6 +268,8 @@ public class BattleArenaManager : MonoBehaviour
         }
         if (giftType == GiftEventType.Rose)
         {
+            if (IsTournament) return FindViewerFighter(viewerId) != null;
+            if (roundEntrants.Contains(viewerId)) return true;
             Color color = Color.HSVToRGB(Mathf.Repeat(fighterCount * 0.137f, 1f), 0.78f, 1f);
             bool spawned=SpawnGiftFighter(viewerId,senderName,avatarUrl,color)!=null;
             if(spawned)ArenaBroadcastHUD.RecordGift(senderName);return spawned;
@@ -214,7 +278,7 @@ public class BattleArenaManager : MonoBehaviour
         ArenaFighter recipient = FindViewerFighter(viewerId);
         if (recipient == null)
         {
-            statusMessage = senderName + ": önce gül ile arenaya katıl.";
+            statusMessage = senderName + ": arenaya katılmak için yayını beğen.";
             return false;
         }
 
@@ -224,7 +288,8 @@ public class BattleArenaManager : MonoBehaviour
         {bool applied=recipient.PowerUps.Activate(power);if(applied)ArenaBroadcastHUD.RecordGift(senderName);return applied;}
         if(giftType==GiftEventType.FirePunch){bool applied=recipient.PowerUps.Activate(ArenaPower.Fire);if(applied)ArenaBroadcastHUD.RecordGift(senderName);return applied;}
         ArenaBroadcastHUD.RecordGift(senderName);
-        ArenaBroadcastHUD.NotifyGift(senderName,giftType.ToString(),recipient.DisplayName);
+        var guide = ArenaGiftGuide.Describe(giftType);
+        ArenaBroadcastHUD.NotifyGift(senderName, guide.Name, guide.Effect);
         switch (giftType)
         {
             case GiftEventType.Health:
@@ -365,7 +430,9 @@ public class BattleArenaManager : MonoBehaviour
         var previous=standing.fighter;
         if(previous==null||previous==fighter||!previous.IsAlive&&fighter.IsAlive||previous.IsAlive&&fighter.IsAlive&&(previous.IsEntering&&!fighter.IsEntering||previous.IsEntering==fighter.IsEntering&&fighter.Health>previous.Health))
         {standing.fighter=fighter;standing.visualIndex=fighter.VisualIndex;}
-        standing.name=fighter.DisplayName;if(!string.IsNullOrEmpty(fighter.AvatarUrl))standing.avatarUrl=fighter.AvatarUrl;return standing;
+        if (!fighter.IsBot || standing.bot) standing.name=fighter.DisplayName;
+        if(!string.IsNullOrEmpty(fighter.AvatarUrl))standing.avatarUrl=fighter.AvatarUrl;
+        return standing;
     }
     public IReadOnlyList<Standing> GetRankedStandings()
     {
@@ -386,13 +453,14 @@ public class BattleArenaManager : MonoBehaviour
     {
         if(attacker!=null&&attacker!=eliminated&&!IsFinished&&!SameViewer(attacker,eliminated))
         {var row=GetStanding(attacker);row.kills++;row.points+=100*(eliminated.IsBot?(MatchSettings!=null?MatchSettings.botScoreWeight:.25f):1);}
+        OnModeElimination(eliminated,attacker);
         statusMessage=eliminated.DisplayName+" elendi; tur devam ediyor.";
     }
     static bool SameViewer(ArenaFighter first,ArenaFighter second)
     {return first!=null&&second!=null&&!string.IsNullOrEmpty(first.ViewerId)&&first.ViewerId==second.ViewerId;}
     public void SelectRoundLength(ArenaRoundLength length)
     {
-        if(IsFinished)return;
+        if(IsFinished || IsTournament)return;
         roundEndsAt=roundStartedAt+(int)length;PlayerPrefs.SetInt("ArenaRoundSeconds",(int)length);PlayerPrefs.Save();
     }
     public bool ApplyMappedCharacterGift(string giftId,string viewerId,string displayName,string avatarUrl)
@@ -408,10 +476,19 @@ public class BattleArenaManager : MonoBehaviour
         var ordered=GetRankedStandings();Standing best=ordered.Count>0?ordered[0]:null;
         champion=best!=null?best.fighter:null;ChampionName=best!=null?best.name:"BERABERE";ChampionViewerId=best!=null?best.id:"";
         IsFinished=true;statusMessage=ChampionName+" TUR ŞAMPİYONU!";
+        CompleteAchievements();
+        if (best != null) ArenaAnnouncer.ChampionWon(ChampionName);
     }
     void Update()
     {
         if(IsFinished)return;
+        if (IsTournament)
+        {
+            UpdateTournament();
+            return;
+        }
+        TickMode();
+        if(IsFinished||TeamMode)return;
         if(Time.time>=roundEndsAt){FinishTimedRound();return;}
         if(!AutomaticReinforcements||Time.time<nextReinforcement)return;
         nextReinforcement=Time.time+(MatchSettings!=null?MatchSettings.reinforcementInterval:3);

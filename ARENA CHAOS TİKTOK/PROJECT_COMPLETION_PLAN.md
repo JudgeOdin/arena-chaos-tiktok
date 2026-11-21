@@ -139,3 +139,11 @@ bildirimleri ve şampiyon/oturum sonuçları aynı teslimin kapsamındadır. Bun
 Assetler geldiğinde bu listedeki bağımlılık sırasıyla tek uygulama süreci yürütülecek.
 Küçük bölümler ayrı ayrı derlenip test edilecek, fakat her küçük değişiklik yeni bir tasarım yönüne dönüşmeyecek.
 
+
+
+## 8. Planlanan özellik: Beğeniyle karakter geliştirme
+
+- İlk TikTok LIVE beğenisi izleyiciyi arenaya kaydeder. Sonraki beğeniler aynı karakterin gelişimine sayılır.
+- Biriken beğeniler belirli eşiklere ulaştığında karakter rastgele bir geliştirme kazanır. Eşikler ve geliştirme havuzu uygulama sırasında belirlenecek.
+- Toplam beğeni ve kazanılan geliştirmeler, TikTok kullanıcı kimliğine göre kaydedilir. İlerleme sonraki maçlarda ve yayınlarda yüklenir.
+- Tek karakter kuralı geçerlidir. Geliştirmelerin 1’e 1 turnuvada nasıl uygulanacağı ayrıca belirlenecek.

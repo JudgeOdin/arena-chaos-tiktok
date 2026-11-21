@@ -68,6 +68,8 @@ public static class ArenaEditorJobs
                     reliabilityTest=command=="reliability-test";SessionState.SetBool("ArenaJob.Reliability",reliabilityTest);
                     classesTest=command=="classes-test";SessionState.SetBool("ArenaJob.Classes",classesTest);previousDurationPreference=PlayerPrefs.GetInt("ArenaRoundSeconds",180);
                     Time.timeScale=1;Application.logMessageReceived+=Log;EditorApplication.isPlaying=true;break;
+                case "mode-test": ArenaModePlayTest.Begin();break;
+                case "build-windows-incremental": ArenaValidation.BuildWindows(false);Result("Incremental Windows build queued");break;
                 case "build-windows":ArenaValidation.BuildWindows();Result("Windows build queued");break;
                 default:throw new Exception("Unknown local editor job");
             }
@@ -135,7 +137,12 @@ public static class ArenaEditorJobs
                 {
                     var first=arena.FindViewerFighter("reliable");
                     if(first==null||first.MaxHealth!=145||testInbox.DeliveredUnits!=4)throw new Exception("Blocked gift head prevented delivery or health combo miscounted");
-                    var second=arena.SpawnGiftFighter("reliable","SecondLife",null,Color.red);
+                    int fighterCount = arena.Fighters.Count;
+                    if (!arena.TryJoinFromLike("reliable", "SameViewer", null))
+                        throw new Exception("Like failed for an existing viewer");
+                    var second=arena.SpawnGiftFighter("reliable","SameViewer",null,Color.red);
+                    if (second != first || arena.Fighters.Count != fighterCount)
+                        throw new Exception("Repeated entry created a second fighter");
                     var victim=arena.Fighters[1];victim.TakeDamage(10,first);victim.TakeDamage(20,second);
                     int records=0;foreach(var row in arena.GetRankedStandings())if(row.id=="reliable"){records++;if(row.damage!=30)throw new Exception("Shared damage total incorrect");}
                     if(records!=1)throw new Exception("Viewer appears twice in ranked standings");

@@ -16,10 +16,12 @@ public sealed class ArenaTacticalBrain : MonoBehaviour
     void Awake(){fighter=GetComponent<ArenaFighter>();preferredSide=Random.value<.5f?-1:1;aggression=Random.Range(.3f,.85f);}
     public ArenaFighter SelectTarget()
     {
+        var duel=fighter.Arena.DuelOpponent(fighter);
+        if (duel!=null) return duel;
         ArenaFighter best=null;float bestScore=float.MaxValue;
         foreach(var other in fighter.Arena.Fighters)
         {
-            if(other==null||other==fighter||!other.IsAlive||other.IsEntering||!other.isActiveAndEnabled)continue;
+            if(other==null||!fighter.Arena.CanAttack(fighter,other)||!other.IsAlive||other.IsEntering||!other.isActiveAndEnabled)continue;
             float distance=Vector3.Distance(transform.position,other.transform.position);
             float score=distance*(.7f+.3f*other.Health/other.MaxHealth);
             if(other.PowerUps.Has(ArenaPower.Shadow))score*=1.8f;

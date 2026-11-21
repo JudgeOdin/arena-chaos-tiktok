@@ -45,8 +45,11 @@ public class ArenaFighter : MonoBehaviour
     public ArenaTacticalBrain TacticalBrain=>tacticalBrain;
     public void ConfigureRole(ArenaGiftRoster.Tier tier)
     {
-        Role=tier.role;maxHealth=tier.health;health=maxHealth;attackDamage=tier.damage;moveSpeed=tier.speed;attackRange=tier.range;attackCooldown=tier.cooldown;shieldHealth=tier.shield;
-        var loadout=gameObject.AddComponent<ArenaClassEquipment>();loadout.Build(this);UpdateHealthBar();
+        float healthFraction = maxHealth > 0f ? health / maxHealth : 1f;
+        Role=tier.role;maxHealth=tier.health;health=maxHealth*healthFraction;attackDamage=tier.damage;moveSpeed=tier.speed;attackRange=tier.range;attackCooldown=tier.cooldown;shieldHealth=tier.shield;
+        var loadout = GetComponent<ArenaClassEquipment>() ?? gameObject.AddComponent<ArenaClassEquipment>();
+        loadout.Build(this);
+        UpdateHealthBar();
     }
     public bool TryRangedHit(ArenaFighter victim)
     {
@@ -77,7 +80,13 @@ public class ArenaFighter : MonoBehaviour
     public bool IsEntering { get; set; }
     public float Health => health;
     public float MaxHealth => maxHealth;
-    public float ShieldHealth => shieldHealth;
+    public float ShieldHealth => shieldHealth + (Time.time < timedShieldUntil ? timedShield : 0);
+    float timedShield, timedShieldUntil;
+    public void GiftTimedShield(float amount,float duration)
+    {
+        timedShield = (Time.time < timedShieldUntil ? timedShield : 0) + amount;
+        timedShieldUntil = Time.time + duration;
+    }
     public string DisplayName { get; private set; }
     public bool IsMoving => visualMoving;
     public bool IsPunching => isPunching;
@@ -298,9 +307,17 @@ public class ArenaFighter : MonoBehaviour
         }
     }
 
-    public void Initialize(BattleArenaManager manager, string displayName, Color color)
+    public enum Look { Standard, Zombie, Gate, Royal }
+    public bool IsZombie { get; private set; }
+    public bool IsRoyal { get; private set; }
+    public Vector3 NameplatePosition => nameLabel!=null?nameLabel.transform.position:transform.position+Vector3.up*1.48f;
+
+    public void Initialize(BattleArenaManager manager, string displayName, Color color, Look look = Look.Standard)
     {
         arena = manager;
+        IsZombie = look == Look.Zombie;
+        IsRoyal = look == Look.Royal;
+        bool standardVisual = look == Look.Standard;
         tacticalBrain=gameObject.AddComponent<ArenaTacticalBrain>();
         PowerUps=GetComponent<ArenaPowerUps>();if(PowerUps==null)PowerUps=gameObject.AddComponent<ArenaPowerUps>();
         DisplayName = displayName;
@@ -314,7 +331,7 @@ public class ArenaFighter : MonoBehaviour
         body.constraints = RigidbodyConstraints.FreezeRotation;
         body.mass = 1f;
         body.linearDamping = 5f;
-        if (ArenaContent.Load() == null)
+        if (standardVisual && ArenaContent.Load() == null)
         {
         visualRig = gameObject.AddComponent<FighterVisualRig>();
         int visualStyle = (nextVisualStyle++ + Random.Range(0, 4)) % 4;
@@ -324,40 +341,81 @@ public class ArenaFighter : MonoBehaviour
         }
         bodyRenderer = GetComponent<Renderer>();
         if (bodyRenderer != null) bodyRenderer.material = CreateMaterial(color);
-        if (ArenaContent.Load() == null) CreateCharacterVisuals(color);
+        if (standardVisual && ArenaContent.Load() == null) CreateCharacterVisuals(color);
         CreateNameLabel();
         CreateHealthBar();
         CreateFist(color);
+        if (!standardVisual)
+        {
+            if (bodyRenderer != null) bodyRenderer.enabled = false;
+            fist.GetComponent<Renderer>().enabled = false;
+            if (IsZombie && !ArenaAnimatedCharacter.TryCreate(this))
+            {
+                var visual = new GameObject("Zombie character").AddComponent<ArenaZombieVisual>();
+                visual.transform.SetParent(transform,false);
+                visual.Build(this);
+            }
+            else if (look == Look.Gate) BuildDefenseGate();
+            else if (IsRoyal)
+            {
+                if (!ArenaAnimatedCharacter.TryCreateRoyal(this,color))
+                {
+                    var fallback=ArenaContent.Load();
+                    if (fallback!=null && fallback.fighters.Length>0)
+                        AttachExternalVisual(fallback.fighters[0],Vector3.down,Vector3.one,fallback.controller);
+                }
+                nameLabel.transform.localPosition+=Vector3.up*.78f;
+                healthFill.parent.localPosition+=Vector3.up*.78f;
+            }
+        }
         UpdateHealthBar();
+    }
+
+    void BuildDefenseGate()
+    {
+        var oak = new Color(.31f,.18f,.095f);
+        var iron = new Color(.18f,.30f,.39f);
+        var brass = new Color(.88f,.67f,.25f);
+        for (int i=-2;i<=2;i++)
+            ArenaVisualPart.Create(transform,PrimitiveType.Cube,new Vector3(.25f*i,-.04f,0),
+                new Vector3(.20f,1.63f,.30f),i%2==0?oak:oak*.83f);
+        foreach (int side in new[]{-1,1})
+        {
+            ArenaVisualPart.Create(transform,PrimitiveType.Cube,new Vector3(side*.65f,-.03f,0),new Vector3(.18f,1.88f,.41f),iron);
+            ArenaVisualPart.Create(transform,PrimitiveType.Cube,new Vector3(0,side*.48f,.19f),new Vector3(1.48f,.12f,.09f),iron);
+            ArenaVisualPart.Create(transform,PrimitiveType.Cube,new Vector3(side*.31f,.11f,.24f),Vector3.one*.13f,brass,new Vector3(0,0,45));
+        }
     }
 
     private void FixedUpdate()
     {
-        if (!IsAlive || IsEntering || arena == null || arena.IsFinished) return;
-        if (Time.time >= nextTargetSearch || target == null || !target.IsAlive)
+        if (!IsAlive || IsEntering || arena == null || arena.IsFinished || !arena.ModeCombatOpen || arena.Stationary(this)) return;
+        if (Time.time >= nextTargetSearch || target == null || !target.IsAlive || !arena.CanAttack(this,target))
         {
             target = tacticalBrain.SelectTarget();
             nextTargetSearch = Time.time + 0.35f;
         }
-        if (target == null)
+        bool modeSteering = arena.ModeSteering(this, target, out var objectiveSteering);
+        if (target == null && !modeSteering)
         {
             visualMoving = false;
             visualMotion?.SetMoving(false);
             return;
         }
-        Vector3 direction = target.transform.position - transform.position;
+        Vector3 direction = target != null ? target.transform.position - transform.position : objectiveSteering;
         direction.y = 0f;
         float distance = direction.magnitude;
         if (direction.sqrMagnitude > 0.01f) body.MoveRotation(Quaternion.LookRotation(direction.normalized));
         bool attack;
         Vector3 steering=tacticalBrain.Decide(target,attackRange,out attack);
+        if (modeSteering) steering = objectiveSteering;
         bool moving=steering.sqrMagnitude>.015f;
         visualMoving=moving;visualMotion?.SetMoving(moving);
         if(moving)
         {
-            Vector3 nextPos=body.position+steering*moveSpeed*PowerUps.MovementMultiplier*Time.fixedDeltaTime;
-            nextPos.x=Mathf.Clamp(nextPos.x,-arena.ArenaRadius+.8f,arena.ArenaRadius-.8f);
-            nextPos.z=Mathf.Clamp(nextPos.z,-arena.ArenaRadius+.8f,arena.ArenaRadius-.8f);
+            Vector3 nextPos=body.position+steering*moveSpeed*PowerUps.MovementMultiplier*arena.ModeSpeed(this)*Time.fixedDeltaTime;
+            nextPos.x=Mathf.Clamp(nextPos.x,-arena.ModeRadius+.8f,arena.ModeRadius-.8f);
+            nextPos.z=Mathf.Clamp(nextPos.z,-arena.ModeRadius+.8f,arena.ModeRadius-.8f);
             body.MovePosition(nextPos);
         }
         if(attack&&Time.time>=nextAttack&&!isPunching)
@@ -410,7 +468,7 @@ public class ArenaFighter : MonoBehaviour
     // by the combat component, including gift attack upgrades and shields.
     public bool ApplyLimbContactDamage(ArenaFighter victim)
     {
-        if (!IsAlive || arena == null || arena.IsFinished || victim == null || victim == this || !victim.IsAlive || victim.IsEntering) return false;
+        if (!IsAlive || arena == null || arena.IsFinished || victim == null || !arena.CanAttack(this,victim) || !victim.IsAlive || victim.IsEntering) return false;
         float before=victim.Health;
         float bonus=PowerUps.FireDamage;
         victim.TakeDamage(attackDamage*PowerUps.DamageMultiplier+bonus, this);
@@ -420,7 +478,7 @@ public class ArenaFighter : MonoBehaviour
 
     public void TakeDamage(float damage, ArenaFighter attacker)
     {
-        if (!IsAlive || IsEntering) return;
+        if (!IsAlive || IsEntering || arena.IsFinished || !arena.ModeCombatOpen || (arena.IsTournament && !arena.DuelInProgress) || (attacker != null && !arena.CanAttack(attacker,this))) return;
         LastDamageTime=Time.time;
         if(Role==ArenaFighterRole.Guardian&&attacker!=null)
         {
@@ -432,8 +490,12 @@ public class ArenaFighter : MonoBehaviour
             }
         }
         damage=Mathf.Max(0,damage)*PowerUps.DamageReduction;
-        float absorbed = Mathf.Min(shieldHealth, damage);
-        shieldHealth -= absorbed;
+        float gifted = Time.time < timedShieldUntil ? Mathf.Min(timedShield,damage) : 0;
+        timedShield -= gifted;
+        float normal = Mathf.Min(shieldHealth,damage-gifted);
+        shieldHealth -= normal;
+        float absorbed = gifted+normal;
+        arena.RecordDefense(absorbed,gifted);
         float previousHealth = health;
         health = Mathf.Max(0f, health - (damage - absorbed));
 
@@ -446,8 +508,8 @@ public class ArenaFighter : MonoBehaviour
             isEliminated = true;
             ArenaBroadcastHUD.RecordElimination(this, attacker);
             arena.NotifyElimination(this, attacker);
-            if (kayKitAnimation != null)
-            { kayKitAnimation.React(true); StartCoroutine(RemoveAfterDeath()); }
+            if (kayKitAnimation != null || IsZombie || IsRoyal)
+            { kayKitAnimation?.React(true); StartCoroutine(RemoveAfterDeath()); }
             else gameObject.SetActive(false);
         }
     }

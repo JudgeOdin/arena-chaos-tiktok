@@ -7,5 +7,6 @@ public enum GiftEventType
     FirePunch,
     Shield,
     MegaBlast,
-    Lightning, Giant, Ice, Explosive, Vampire, Shadow, Meteor, HolyShield, Poison, Firestorm, FrozenTime, ArcherEntry, GuardianEntry
+    Lightning, Giant, Ice, Explosive, Vampire, Shadow, Meteor, HolyShield, Poison, Firestorm, FrozenTime, ArcherEntry, GuardianEntry,
+    TeamShield, NextRule
 }

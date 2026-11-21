@@ -45,7 +45,7 @@ public sealed class ArenaRuntimeSmokeTest : MonoBehaviour
         string report=(success?"PASS":"FAILED")+"\nFighters="+initial+"\nErrors="+errors+"\nLimbContacts="+hits+
             "\nAverageFPS="+(frames/Mathf.Max(.001f,seconds)).ToString("F1")+"\nSampleSeconds="+seconds.ToString("F1")+
             "\nGPU="+SystemInfo.graphicsDeviceName+"\nResolution="+Screen.width+"x"+Screen.height+
-            "\nAllocatedMB="+(Profiler.GetTotalAllocatedMemoryLong()/1048576)+"\nRootY="+minY+".."+maxY+"\nMaterialsValid="+materials;
+            "\nRenderPercent="+ArenaRenderQuality.Percent+"\nAllocatedMB="+(Profiler.GetTotalAllocatedMemoryLong()/1048576)+"\nRootY="+minY+".."+maxY+"\nMaterialsValid="+materials;
         File.WriteAllText(Path.Combine(folder,"Standalone_"+initial+".txt"),report);
         Application.logMessageReceived-=Log;Application.Quit(success?0:1);
     }

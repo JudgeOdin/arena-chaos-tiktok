@@ -1,34 +1,67 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>Chamfered broadcast plates with layered metal edges and engraved accents.</summary>
 [RequireComponent(typeof(CanvasRenderer))]
 public sealed class ArenaPanelGraphic : MaskableGraphic
 {
-    public Color accent=new Color(.8f,.65f,.32f);
+    public Color accent = new Color(.88f, .65f, .30f);
+    public bool fadeUp;
+    public bool backdrop;
+
     protected override void OnPopulateMesh(VertexHelper mesh)
     {
-        mesh.Clear();var rect=rectTransform.rect;
-        Plate(mesh,rect,12,new Color(.025f,.035f,.05f,.94f));
-        var inner=rect;inner.xMin+=2;inner.xMax-=2;inner.yMin+=2;inner.yMax-=2;
-        Plate(mesh,inner,10,new Color(.11f,.15f,.19f,.95f));
-        inner.xMin+=2;inner.xMax-=2;inner.yMin+=2;inner.yMax-=2;
-        Plate(mesh,inner,8,new Color(.035f,.052f,.072f,.94f));
-        Quad(mesh,new Rect(rect.xMin+14,rect.yMax-3,Mathf.Min(90,rect.width*.3f),2),accent);
-        Quad(mesh,new Rect(rect.xMin+3,rect.yMin+12,2,Mathf.Max(0,rect.height-24)),accent*.7f);
-        for(int i=0;i<3;i++)Quad(mesh,new Rect(rect.xMax-20-i*8,rect.yMax-10,4,2),accent);
-        for(float y=rect.yMin+9;y<rect.yMax-8;y+=7)Quad(mesh,new Rect(rect.xMin+10,y,Mathf.Max(0,rect.width-20),.6f),new Color(.25f,.32f,.38f,.09f));
+        mesh.Clear();
+        Rect rect = rectTransform.rect;
+        if (rect.width < 1 || rect.height < 1) return;
+
+        if (backdrop)
+        {
+            var shade = new Color(.017f, .025f, .043f, .98f);
+            var clear = new Color(shade.r, shade.g, shade.b, 0f);
+            Quad(mesh, rect, fadeUp ? shade : clear, fadeUp ? clear : shade);
+            return;
+        }
+
+        float cut = Mathf.Min(20, rect.height * .24f, rect.width * .17f);
+        Plate(mesh, rect, cut, new Color(.013f, .019f, .032f, .98f),
+            Color.Lerp(new Color(.23f, .29f, .37f), accent, .52f));
+
+        var face = Rect.MinMaxRect(rect.xMin + 2, rect.yMin + 2, rect.xMax - 2, rect.yMax - 2);
+        Plate(mesh, face, Mathf.Max(0, cut - 1),
+            new Color(.026f, .038f, .063f, .98f),
+            Color.Lerp(new Color(.09f, .13f, .20f, .98f), accent, .12f));
+
+        float rail = Mathf.Min(rect.width * .36f, 114);
+        Quad(mesh, new Rect(rect.xMin + cut, rect.yMax - 3, rail, 2), accent, accent);
+        Quad(mesh, new Rect(rect.xMax - cut - rail * .35f, rect.yMin + 1, rail * .35f, 1),
+            accent * .55f, accent * .55f);
     }
-    static void Plate(VertexHelper mesh,Rect rect,float cut,Color color)
+
+    static void Plate(VertexHelper mesh, Rect rect, float cut, Color bottom, Color top)
     {
-        cut=Mathf.Min(cut,rect.height*.25f,rect.width*.25f);
-        int start=mesh.currentVertCount;
-        Vector2[] points={new Vector2(rect.xMin+cut,rect.yMin),new Vector2(rect.xMax-cut,rect.yMin),new Vector2(rect.xMax,rect.yMin+cut),new Vector2(rect.xMax,rect.yMax-cut),new Vector2(rect.xMax-cut,rect.yMax),new Vector2(rect.xMin+cut,rect.yMax),new Vector2(rect.xMin,rect.yMax-cut),new Vector2(rect.xMin,rect.yMin+cut)};
-        foreach(var point in points)mesh.AddVert(point,color,Vector2.zero);
-        for(int i=1;i<7;i++)mesh.AddTriangle(start,start+i+1,start+i);
+        int start = mesh.currentVertCount;
+        Vertex(mesh, rect.xMin + cut, rect.yMin, bottom);
+        Vertex(mesh, rect.xMax - cut, rect.yMin, bottom);
+        Vertex(mesh, rect.xMax, rect.yMin + cut, bottom);
+        Vertex(mesh, rect.xMax, rect.yMax - cut, top);
+        Vertex(mesh, rect.xMax - cut, rect.yMax, top);
+        Vertex(mesh, rect.xMin + cut, rect.yMax, top);
+        Vertex(mesh, rect.xMin, rect.yMax - cut, top);
+        Vertex(mesh, rect.xMin, rect.yMin + cut, bottom);
+        for (int i = 1; i < 7; i++) mesh.AddTriangle(start, start + i + 1, start + i);
     }
-    static void Quad(VertexHelper mesh,Rect rect,Color color)
+
+    static void Quad(VertexHelper mesh, Rect rect, Color bottom, Color top)
     {
-        int i=mesh.currentVertCount;mesh.AddVert(new Vector2(rect.xMin,rect.yMin),color,Vector2.zero);mesh.AddVert(new Vector2(rect.xMin,rect.yMax),color,Vector2.zero);mesh.AddVert(new Vector2(rect.xMax,rect.yMax),color,Vector2.zero);mesh.AddVert(new Vector2(rect.xMax,rect.yMin),color,Vector2.zero);mesh.AddTriangle(i,i+1,i+2);mesh.AddTriangle(i,i+2,i+3);
+        int start = mesh.currentVertCount;
+        Vertex(mesh, rect.xMin, rect.yMin, bottom);
+        Vertex(mesh, rect.xMin, rect.yMax, top);
+        Vertex(mesh, rect.xMax, rect.yMax, top);
+        Vertex(mesh, rect.xMax, rect.yMin, bottom);
+        mesh.AddTriangle(start, start + 1, start + 2);
+        mesh.AddTriangle(start, start + 2, start + 3);
     }
+
+    static void Vertex(VertexHelper mesh, float x, float y, Color color) =>
+        mesh.AddVert(new Vector3(x, y), color, Vector2.zero);
 }

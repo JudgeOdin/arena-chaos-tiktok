@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+#if ARENA_NORMALGON
 using Normalgon.SharedAssets;
+#endif
 
 /// <summary>
 /// Builds one Normalgon modular character at runtime without changing the
@@ -8,6 +10,7 @@ using Normalgon.SharedAssets;
 /// </summary>
 public sealed class NormalgonRuntimeAssembler : MonoBehaviour
 {
+#if ARENA_NORMALGON
     private bool assembled;
 
     public void Assemble()
@@ -110,4 +113,7 @@ public sealed class NormalgonRuntimeAssembler : MonoBehaviour
             rigidbody.detectCollisions = false;
         }
     }
+#else
+    public void Assemble() { }
+#endif
 }

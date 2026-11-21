@@ -1,5 +1,44 @@
 import json,time,sys,shutil
 from pathlib import Path
+from datetime import datetime
+
+
+def recording_candidates(arguments):
+    """Convert live UTC markers into offsets for the existing promo workflow."""
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--candidates", type=Path, required=True)
+    parser.add_argument("--recording-start", required=True, help="ISO 8601 time with UTC offset")
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args(arguments)
+    start = datetime.fromisoformat(args.recording_start.replace("Z", "+00:00"))
+    if start.tzinfo is None:
+        parser.error("--recording-start requires a UTC offset")
+
+    clips = []
+    for line in args.candidates.read_text(encoding="utf-8-sig").splitlines():
+        if not line.strip():
+            continue
+        event = json.loads(line)
+        when = datetime.fromisoformat(event["utc"].replace("Z", "+00:00"))
+        offset = (when - start).total_seconds()
+        if offset >= 0:
+            clips.append({
+                **event,
+                "recordingOffset": round(offset, 3),
+                "in": round(max(0, offset - 7), 3),
+                "out": round(offset + 5, 3),
+            })
+
+    args.output.write_text(json.dumps(clips, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"{len(clips)} clip candidates written to {args.output}")
+
+
+if "--candidates" in sys.argv:
+    recording_candidates(sys.argv[1:])
+    sys.exit(0)
+
 import imageio_ffmpeg
 
 ROOT=Path(__file__).resolve().parents[2]

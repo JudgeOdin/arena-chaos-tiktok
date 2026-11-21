@@ -1,6 +1,6 @@
 PASS
 Contact damage, vampire healing and cooldown verified
-Burn/poison damage observed: 26
+Burn/poison damage observed: 10
 11 timed effects activated; shield absorption verified
 Timed effects expired; modifiers restored
 Meteor eliminated all rivals including shielded/armored/queued targets; sender unharmed; errors=0

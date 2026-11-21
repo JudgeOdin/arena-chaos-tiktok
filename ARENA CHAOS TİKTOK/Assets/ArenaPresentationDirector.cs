@@ -106,8 +106,8 @@ public sealed class ArenaPresentationDirector : MonoBehaviour
             cameraHomePosition=arenaCamera.transform.position;cameraHomeRotation=arenaCamera.transform.rotation;
             CameraRig.SetPositionAndRotation(cameraHomePosition,cameraHomeRotation);
         }
-        if(ambienceSource!=null)ambienceSource.volume=ambienceVolume;
-        if(cheerSource!=null)cheerSource.volume=cheerVolume;
+        if(ambienceSource!=null)ambienceSource.volume=ambienceVolume * ArenaAnnouncer.BackgroundGain;
+        if(cheerSource!=null)cheerSource.volume=cheerVolume * ArenaAnnouncer.BackgroundGain;
         AnimateAudience();
         if (ArenaContent.Load() != null) return; // New impact effects are emitted only on actual limb contact.
         if (manager == null) return;
@@ -132,6 +132,13 @@ public sealed class ArenaPresentationDirector : MonoBehaviour
         fighter.gameObject.SetActive(false);
         entranceQueue.Enqueue(new KeyValuePair<ArenaFighter,Vector3>(fighter,entryPosition));
         if (!processingEntrance) StartCoroutine(ProcessEntrances());
+    }
+
+    public void PlayDuelEntrance(ArenaFighter fighter, int side)
+    {
+        fighter.IsEntering = true;
+        fighter.enabled = false;
+        StartCoroutine(EntranceRoutine(fighter, new Vector3(side, 0, 0), tournament: true));
     }
 
     private IEnumerator ProcessEntrances()
@@ -174,7 +181,7 @@ public sealed class ArenaPresentationDirector : MonoBehaviour
         StartCoroutine(MegaBlastRoutine());
     }
 
-    private IEnumerator EntranceRoutine(ArenaFighter fighter, Vector3 entryPosition)
+    private IEnumerator EntranceRoutine(ArenaFighter fighter, Vector3 entryPosition, bool tournament = false)
     {
         int side = entryPosition.x < 0f ? -1 : 1;
         int gate = side < 0 ? 0 : 1;
@@ -189,7 +196,7 @@ public sealed class ArenaPresentationDirector : MonoBehaviour
         fighter.transform.SetPositionAndRotation(start, Quaternion.LookRotation(Vector3.left * side));
         // Instantiate is hidden behind the opaque door and roof.
         fighter.gameObject.SetActive(true);
-        FocusCameraBriefly(fighter);
+        if (!tournament) FocusCameraBriefly(fighter);
         ArenaAudioEffects.Door();
         cheerUntil = Time.time + 4f;
         if (cheerSource != null && crowdCheer != null && !cheerSource.isPlaying) cheerSource.PlayOneShot(crowdCheer);
@@ -229,6 +236,7 @@ public sealed class ArenaPresentationDirector : MonoBehaviour
             body.detectCollisions = hadCollisions;
             fighter.IsEntering = false;
             fighter.enabled = true;
+            if (!tournament) ArenaAnnouncer.PlayerEntered(fighter);
         }
         yield return SwingDoor(gate, false);
         elapsed = 0f;

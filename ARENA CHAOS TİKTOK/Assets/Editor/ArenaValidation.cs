@@ -34,7 +34,9 @@ public static class ArenaValidation
         Debug.Log(report);return report;
     }
     [MenuItem("Arena Chaos/Build Windows")]
-    public static void BuildWindows()
+    public static void BuildWindows() => BuildWindows(true);
+
+    public static void BuildWindows(bool clean)
     {
         if(EditorApplication.isPlaying)throw new Exception("Stop Play Mode before build.");
         Directory.CreateDirectory("Builds/Windows");
@@ -42,7 +44,7 @@ public static class ArenaValidation
         {
             var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions {
                 scenes=new[]{"Assets/Scenes/SampleScene.unity"},locationPathName="Builds/Windows/ARENA_CHAOS.exe",
-                target=BuildTarget.StandaloneWindows64,options=BuildOptions.CleanBuildCache });
+                target=BuildTarget.StandaloneWindows64,options=clean?BuildOptions.CleanBuildCache:BuildOptions.None });
             Directory.CreateDirectory("Tools/TestResults");
             File.WriteAllText("Tools/TestResults/WindowsBuild.txt",report.summary.result+"; errors="+report.summary.totalErrors+"; warnings="+report.summary.totalWarnings+"; bytes="+report.summary.totalSize);
             var warnings=new SortedDictionary<string,int>();
