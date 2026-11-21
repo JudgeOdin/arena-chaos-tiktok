@@ -9,9 +9,10 @@ public sealed class ArenaModeEmblem : MonoBehaviour
     float height;
     float angle;
     float spinSpeed=78f;
-    Material skullSkin;
     float started;
     Vector3 position;
+    bool targetBadge;
+    Camera viewCamera;
 
     public static ArenaModeEmblem Create(Transform owner, Shape shape, Color accent, float height = 2.35f)
     {
@@ -34,6 +35,13 @@ public sealed class ArenaModeEmblem : MonoBehaviour
 
     void LateUpdate()
     {
+        if(targetBadge)
+        {
+            if(viewCamera==null)viewCamera=Camera.main;
+            transform.position=(anchor!=null?anchor.position:position)+Vector3.up*(height+Mathf.Sin((Time.time-started)*3f)*.035f);
+            if(viewCamera!=null)transform.rotation=viewCamera.transform.rotation;
+            return;
+        }
         float hover = Mathf.Sin((Time.time - started) * 4f) * .11f;
         angle = Mathf.Repeat(angle + Time.deltaTime * spinSpeed, 360f);
         transform.SetPositionAndRotation((anchor != null ? anchor.position : position) + Vector3.up * (height + hover),
@@ -47,7 +55,8 @@ public sealed class ArenaModeEmblem : MonoBehaviour
         switch (shape)
         {
             case Shape.BountySkull:
-                BuildSkull();
+                targetBadge=true;
+                ArenaBountyBadge.Create(transform);
                 break;
             case Shape.Crown:
                 Part(PrimitiveType.Cylinder,new Vector3(0,-.18f,0),new Vector3(.70f,.057f,.70f),accent);
@@ -92,41 +101,6 @@ public sealed class ArenaModeEmblem : MonoBehaviour
                 Part(PrimitiveType.Cube,Vector3.forward*.08f,new Vector3(.28f,.28f,.07f),dark,new Vector3(0,0,45));
                 break;
         }
-    }
-
-    void BuildSkull()
-    {
-        var skull=Resources.Load<GameObject>("ArenaChaos/Royal/BountySkull");
-        if(skull==null) return;
-        var model=Instantiate(skull,transform,false);
-        model.name="Ivory bounty skull";
-        var renderers=model.GetComponentsInChildren<Renderer>(true);
-        if(renderers.Length==0) return;
-        var bounds=renderers[0].bounds;
-        foreach(var renderer in renderers) bounds.Encapsulate(renderer.bounds);
-        if(bounds.size.y>.001f)
-        {
-            model.transform.localScale*=.78f/bounds.size.y;
-            bounds=renderers[0].bounds;
-            foreach(var renderer in renderers) bounds.Encapsulate(renderer.bounds);
-            model.transform.position+=transform.position-bounds.center;
-        }
-        spinSpeed=52f;
-        var shader=Shader.Find("Universal Render Pipeline/Lit");
-        if(shader==null) return;
-        skullSkin=new Material(shader){color=new Color(.98f,.83f,.60f)};
-        skullSkin.SetFloat("_Metallic",.08f);
-        skullSkin.SetFloat("_Smoothness",.22f);
-        foreach(var renderer in renderers)
-        {
-            renderer.sharedMaterial=skullSkin;
-            renderer.shadowCastingMode=ShadowCastingMode.Off;
-        }
-    }
-
-    void OnDestroy()
-    {
-        if(skullSkin!=null) Destroy(skullSkin);
     }
 
     void Part(PrimitiveType primitive, Vector3 at, Vector3 scale, Color color, Vector3 euler = default) =>

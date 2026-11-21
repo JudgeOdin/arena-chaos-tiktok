@@ -14,11 +14,11 @@ using UnityEngine;
     {
         if(EditorApplication.isCompiling||EditorApplication.isUpdating||EditorApplication.isPlayingOrWillChangePlaymode||!File.Exists(Request))return;
         string json=File.ReadAllText(Request);File.Delete(Request);var config=JsonUtility.FromJson<ArenaPromoConfig>(json);
-        if(config.scenario!="meteor"&&config.scenario!="fire"&&config.scenario!="classes"&&config.scenario!="infection"&&config.scenario!="king")throw new Exception("Unknown capture scenario");
+        if(config.scenario!="meteor"&&config.scenario!="fire"&&config.scenario!="classes"&&config.scenario!="infection"&&config.scenario!="king"&&config.scenario!="giant"&&config.scenario!="bounty")throw new Exception("Unknown capture scenario");
         Directory.CreateDirectory(config.folder);SessionState.SetString(Key,json);SessionState.SetBool("ArenaPromo.Pending",true);
         SessionState.SetBool("ArenaPromo.PreviousModePresent",PlayerPrefs.HasKey("ArenaActiveMode"));
         SessionState.SetInt("ArenaPromo.PreviousMode",PlayerPrefs.GetInt("ArenaActiveMode",0));
-        int mode=config.scenario=="infection"?3:config.scenario=="king"?2:0;
+        int mode=config.scenario=="infection"?3:config.scenario=="king"?2:config.scenario=="giant"?6:config.scenario=="bounty"?7:0;
         PlayerPrefs.SetInt("ArenaActiveMode",mode);
         SetSize(config.Width,config.Height);Time.timeScale=1;EditorApplication.isPaused=false;EditorApplication.isPlaying=true;
     }

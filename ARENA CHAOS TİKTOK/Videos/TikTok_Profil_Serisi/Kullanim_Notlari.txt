@@ -1,0 +1,29 @@
+ARENA CHAOS — @arenachaostr profil serisi
+
+Üç yeni dikey kurgu:
+01_Dostun_Zombiye_Donustu.mp4 — Dönüşüm ve takım değiştirme.
+02_Bir_Kral_Butun_Takim.mp4 — Kralın düşmesiyle takımın kaybetmesi.
+03_Herkes_Tek_Bir_Deve_Karsi.mp4 — Altı kişilik takımın arena deviyle dövüşmesi.
+
+Her videoda Türkçe yapay seslendirme, konuşmayla eşleşen ekran altyazıları,
+oyunun müziği ve temas sesleri, konuya özel açılış, yorum sorusu ve hesap adı bulunur.
+MP4: H.264, 1080x1920, 30 FPS; ses: AAC, stereo, 48 kHz.
+Kaynaklar: Bu proje içinde yeniden çekilmiş 540x960 oyun görüntüleri; çıktıda 1080x1920 ölçekleme kullanılır.
+Görüntüler tanıtım için sahnelenmiş oyun içi demolardır. Gerçek TikTok LIVE kaydı değildir.
+Kralın düşüşü ve zombiye dönüşme çekim senaryosuyla tetiklenmiştir.
+Dev görüntüsünde gerçek Dev Avı modu ve mevcut Dev Güç yeteneği birlikte kullanılır.
+Ses: tr-TR-AhmetNeural, sentetik Türkçe anlatım. Müzik ve temas sesi projenin mevcut sesleridir.
+
+Kapak JPG'leri videoların açılışından alınmıştır. SRT'ler ayrıca teslim edilir;
+altyazılar MP4'e zaten işlenmiştir. Tekrar altyazı eklemek çift yazı oluşturur.
+TikTok'ta yükleme sırasında videoyu tekrar kırpmadan 9:16 oranını koru.
+Açıklama ve yorum taslakları Paylasim_Metinleri.txt dosyasındadır.
+
+Hesap bağlantısı alındı ancak TikTok profil sayfası bu ortamdan açılamadı;
+mevcut paylaşımların görüntüsü veya performansı incelenmiş değildir.
+Seri kullanıcının seçtiği Zombi, Kralı Koru ve Dev Avı konularına göre hazırlanmıştır.
+Herhangi bir paylaşım veya hesap değişikliği yapılmamıştır.
+
+Kontrol: Video_Kontrol_Raporu.json dosyasında çözünürlük, FPS, süre,
+tam video çözümleme ve ses süresi/seviyesi sonuçları bulunur.
+Üretim aracı: Tools/Video/profile_series.py

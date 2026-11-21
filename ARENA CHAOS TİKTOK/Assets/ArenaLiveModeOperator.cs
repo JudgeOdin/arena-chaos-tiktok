@@ -15,6 +15,10 @@ public sealed partial class ArenaLiveOperator
         GUILayout.Label(arena.ModeGoal);
         if (PlayerPrefs.HasKey("ArenaNextMode"))
             GUILayout.Label("Sonraki: "+BattleArenaManager.ModeName((ArenaMode)Mathf.Clamp(PlayerPrefs.GetInt("ArenaNextMode"),0,10)));
+        bool previousEnabled=GUI.enabled;
+        GUI.enabled=previousEnabled&&PlayerPrefs.HasKey("ArenaNextMode");
+        if(GUILayout.Button("SEÇİLEN MODA ŞİMDİ GEÇ",GUILayout.Height(34)))arena.SwitchToRequestedModeNow();
+        GUI.enabled=previousEnabled;
         if (GUILayout.Button(modeControls?"Mod seçeneklerini kapat":"Modlar ve yerel sohbet")) modeControls=!modeControls;
         if (!modeControls) return;
 
@@ -24,6 +28,7 @@ public sealed partial class ArenaLiveOperator
             if (GUILayout.Button(i+"  "+BattleArenaManager.ModeName(mode)))
             {
                 arena.RequestMode(mode);
+                feedback="Mod seçildi. Hemen başlatmak için SEÇİLEN MODA ŞİMDİ GEÇ düğmesini kullan.";
                 if (arena.CanSwitchIdleTournament && mode!=ArenaMode.Tournament) arena.AdvanceMode();
             }
         }

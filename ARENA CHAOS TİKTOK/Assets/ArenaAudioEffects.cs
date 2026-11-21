@@ -105,6 +105,12 @@ public sealed class ArenaAudioEffects : MonoBehaviour
     }
     public static void Blast()
     {BlastAt(Vector3.zero);}
+    public static void BossSlam(Vector3 position)
+    {
+        if(instance==null)return;
+        Impact(position,true);
+        if(instance.spellClips[4]!=null)instance.audioSource.PlayOneShot(instance.spellClips[4],.48f);
+    }
     public static void BlastAt(Vector3 position)
     {
         if(instance==null||Time.time<instance.nextBlast)return;

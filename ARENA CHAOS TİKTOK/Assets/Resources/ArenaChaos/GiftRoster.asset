@@ -17,7 +17,7 @@ MonoBehaviour:
     label: "TEMEL D\xD6V\xDC\u015E\xC7\xDC"
     tiktokGiftId: 
     modelIndex: 0
-    health: 100
+    health: 160
     damage: 16
     speed: 2.8
     range: 1.2
@@ -27,7 +27,7 @@ MonoBehaviour:
     label: "OK\xC7U"
     tiktokGiftId: 
     modelIndex: 3
-    health: 140
+    health: 224
     damage: 22
     speed: 3
     range: 7
@@ -37,7 +37,7 @@ MonoBehaviour:
     label: KALKANLI MUHAFIZ
     tiktokGiftId: 
     modelIndex: 1
-    health: 240
+    health: 384
     damage: 24
     speed: 2.2
     range: 1.25

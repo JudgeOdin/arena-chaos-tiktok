@@ -78,6 +78,7 @@ public partial class BattleArenaManager
     string rule, ruleSender, modeResult, previousLeader;
     Entrant ruleRequest;
     public ArenaMode Mode { get; private set; }
+    bool modeTransitioning;
     public string ModeLabel => ModeName(Mode);
     public static string ModeName(ArenaMode mode) => Names[(int)mode];
     public string ModeGoal => Goals[(int)Mode] + (IsTournament ? "  •  Yayını beğen" : "  •  !katıl");
@@ -95,7 +96,7 @@ public partial class BattleArenaManager
         var enemy=actor==duelLeft?duelRight:actor==duelRight?duelLeft:null;
         return Alive(enemy)?enemy:null;
     }
-    public bool Stationary(ArenaFighter actor) => actor == gate;
+    public bool Stationary(ArenaFighter actor) => actor == gate || actor == boss && warning!=null;
     public float ModeSpeed(ArenaFighter actor) => actor == carrier ? .58f : rule == "hız" ? 1.3f : 1f;
     int SideOf(ArenaFighter actor) => actor != null && sides.TryGetValue(actor, out int side) ? side : 0;
     static bool Alive(ArenaFighter x) => x != null && x.IsAlive && x.gameObject.activeInHierarchy;
@@ -131,6 +132,8 @@ public partial class BattleArenaManager
 
     public void AdvanceMode()
     {
+        if(modeTransitioning)return;
+        modeTransitioning=true;
         previousWinner = Champion != null && !Champion.IsBot ? ChampionViewerId : null;
         ArenaBroadcastMetrics.EndRound(roundEntrants);
         foreach (var entry in waiting) Ready[entry.id]=entry;
@@ -150,6 +153,15 @@ public partial class BattleArenaManager
         }
         if (ruleRequest != null && nextRule == null) SetRule("hız");
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
+
+    public void SwitchToRequestedModeNow()
+    {
+        if(!PlayerPrefs.HasKey("ArenaNextMode"))return;
+        foreach(var actor in fighters)
+            if(LivingViewer(actor))Ready[actor.ViewerId]=Entry(actor.ViewerId,actor.DisplayName,actor.AvatarUrl);
+        Time.timeScale=1;
+        AdvanceMode();
     }
 
     void StartMode()
@@ -196,7 +208,7 @@ public partial class BattleArenaManager
             case ArenaMode.Giant:
             case ArenaMode.GuestChampion:
                 string guest = PlayerPrefs.GetString("ArenaGuestChampion","").Trim();
-                boss = SpawnObjective(Mode == ArenaMode.GuestChampion && guest.Length > 0 ? guest : "Arena Devi",1,Vector3.up,250);
+                boss = SpawnObjective(Mode == ArenaMode.GuestChampion && guest.Length > 0 ? guest : "Arena Devi",1,Vector3.up,450);
                 boss.transform.localScale *= 1.55f;
                 AttachEmblem(boss,ArenaModeEmblem.Shape.Boss,Red,2.8f);
                 strikeAt = Time.time + 7;
@@ -441,7 +453,7 @@ public partial class BattleArenaManager
                     specialMarker=ArenaModeEmblem.Create(transform,
                         Mode==ArenaMode.Bounty?ArenaModeEmblem.Shape.BountySkull:ArenaModeEmblem.Shape.Crown,
                         Mode==ArenaMode.Bounty?Red:GoldAccent);
-                specialMarker.SetAnchor(special.transform,2.1f);
+                specialMarker.SetAnchor(special.transform,Mode==ArenaMode.Bounty?2.65f:2.1f);
             }
             else if (specialMarker!=null) { Destroy(specialMarker.gameObject); specialMarker=null; }
         }
@@ -491,6 +503,7 @@ public partial class BattleArenaManager
 
     void FinishObjective(string result,ArenaFighter winner=null)
     {
+        if(warning!=null){Destroy(warning);warning=null;}
         modeResult=result;
         champion=winner;
         ChampionName=winner!=null?winner.DisplayName:result;
@@ -558,17 +571,23 @@ public partial class BattleArenaManager
         }
         if (warning!=null && Time.time>=warningAt)
         {
+            var impact=warning.GetComponent<ArenaBossSlamVisual>();
+            warning=null;strikeAt=Time.time+6;
+            impact.Strike();
             foreach(var x in fighters)
-                if (Viewer(x)&&Flat(x.transform.position,warningPosition)<=3.4f) x.TakeDamage(55,boss);
-            Destroy(warning); warning=null; strikeAt=Time.time+6;
+                if (Viewer(x)&&Flat(x.transform.position,warningPosition)<=3.4f)
+                {
+                    x.TakeDamage(55,boss);
+                    x.KnockBackFrom(warningPosition,6f,5.4f);
+                }
         }
         if (warning==null && Time.time>=strikeAt)
         {
             var target=fighters.FirstOrDefault(Viewer);
             if (target==null) return;
-            warningPosition=target.transform.position;
-            warning=Marker("Boss saldırı alanı",warningPosition,Red,6.8f);
-            warningAt=Time.time+3;
+            warningPosition=boss.transform.position;
+            warning=ArenaBossSlamVisual.Begin(transform,warningPosition,3.4f,1.4f);
+            warningAt=Time.time+1.4f;
         }
     }
     string BossStats() => $"Boss hasarı {(boss!=null?boss.MaxHealth-boss.Health:0):0} • Emilen {defense:0}";

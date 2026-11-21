@@ -109,6 +109,11 @@ public sealed class ArenaModePlayTest : MonoBehaviour
             string id=testId+"-"+i;
             if (i == 0)
             {
+                var tiers=Resources.Load<ArenaGiftRoster>("ArenaChaos/GiftRoster");
+                Require(Mathf.Approximately(tiers.Find(ArenaFighterRole.Basic).health,160),"Basic health tuning missing");
+                Require(Mathf.Approximately(tiers.Find(ArenaFighterRole.Archer).health,224),"Archer health tuning missing");
+                Require(Mathf.Approximately(tiers.Find(ArenaFighterRole.Guardian).health,384),"Guardian health tuning missing");
+                Require(Mathf.Approximately(arena.Fighters[0].MaxHealth,160),"Scene fighter ignored base health tuning");
                 var live = ArenaGiftInbox.Instance;
                 var local = ArenaGiftInbox.Local;
                 int baseline = live.PendingUnits;
@@ -255,9 +260,34 @@ public sealed class ArenaModePlayTest : MonoBehaviour
                     var giant=(ArenaFighter)Get(arena,"boss");
                     Require(Mathf.Abs(giant.transform.position.x)<.1f && Mathf.Abs(giant.transform.position.z)<.1f,"Giant did not spawn in arena center");
                     Require(giant.GetComponentInChildren<ArenaModeEmblem>()!=null,"Boss emblem missing");
+                    arena.GetComponent<ArenaPresentationDirector>()?.StopAllCoroutines();
+                    giant.enabled=false;
+                    actor.enabled=true;
+                    actor.GetComponent<Rigidbody>().isKinematic=false;
+                    actor.GetComponent<Rigidbody>().detectCollisions=true;
+                    actor.transform.position=new Vector3(1.4f,1,0);
+                    actor.GetComponent<Rigidbody>().position=actor.transform.position;
                     Set(arena,"strikeAt",Time.time-1);
                     Call(arena,"TickMode");
                     Require((GameObject)Get(arena,"warning")!=null,"Boss telegraph missing");
+                    var tell=(GameObject)Get(arena,"warning");
+                    Require(tell.GetComponent<ArenaBossSlamVisual>()!=null && tell.GetComponent<Collider>()==null,"Boss still uses a solid primitive tell");
+                    Require(arena.Stationary(giant),"Boss moved during ground slam windup");
+                    float floorY=actor.transform.position.y;
+                    Vector3 floorPosition=actor.transform.position;
+                    float before=actor.Health;
+                    Set(arena,"warningAt",Time.time-1);
+                    Call(arena,"TickMode");
+                    Require(actor.Health<before && actor.IsKnockedBack,"Slam did not damage and launch viewer");
+                    Require(actor.GetComponent<Rigidbody>().linearVelocity.y>5,"Slam has no vertical impulse");
+                    Require((GameObject)Get(arena,"warning")==null,"Slam warning was not consumed");
+                    yield return new WaitForSeconds(.20f);
+                    Require(actor.transform.position.y>floorY+.25f,"Launched fighter did not rise in physics");
+                    Require(Vector2.Distance(new Vector2(actor.transform.position.x,actor.transform.position.z),new Vector2(floorPosition.x,floorPosition.z))>.5f,"Slam did not push fighter away");
+                    yield return new WaitForSeconds(1.5f);
+                    Require(!actor.IsKnockedBack && actor.transform.position.y<floorY+.3f,"Fighter did not land and recover");
+                    Require(Mathf.Approximately(actor.GetComponent<Rigidbody>().linearDamping,5),"Knockback did not restore physics damping");
+                    report.AppendLine("Boss slam: fracture effect, windup hold, damage, physical lift, outward launch, landing/recovery, warning cleanup passed");
                     ((ArenaFighter)Get(arena,"boss")).TakeDamage(10000,actor);
                 }
                 if (arena.Mode==ArenaMode.Bounty)
@@ -266,12 +296,11 @@ public sealed class ArenaModePlayTest : MonoBehaviour
                     Set(arena,"marked",demoTarget);
                     Call(arena,"TickMode");
                     var emblem=(ArenaModeEmblem)Get(arena,"specialMarker");
-                    Require(emblem!=null && emblem.transform.Find("Ivory bounty skull")!=null,"Bounty skull asset missing");
+                    Require(emblem!=null && emblem.GetComponentInChildren<ArenaBountyBadge>()!=null,"Bounty target insignia missing");
                     if (SessionState.GetBool("ArenaModes.RoyalCapture",false))
                     {
-                        var before=emblem.transform.rotation;
                         yield return new WaitForSeconds(.30f);
-                        Require(Quaternion.Angle(before,emblem.transform.rotation)>4f,"Skull did not rotate");
+                        Require(Quaternion.Angle(emblem.transform.rotation,Camera.main.transform.rotation)<1f,"Bounty badge did not face camera");
                         ScreenCapture.CaptureScreenshot("Tools/TestResults/Bounty-Portrait.png");
                         yield return new WaitForEndOfFrame();
                     }
@@ -284,6 +313,19 @@ public sealed class ArenaModePlayTest : MonoBehaviour
                     Require(ArenaGiftInbox.Instance.Submit(new ArenaGiftEvent { eventId=deferred,viewerId=deferred,displayName="Pending",type=GiftEventType.Health }),"Pending gift submit failed");
                 if (arena.Mode==ArenaMode.King)
                     Require(ArenaGiftInbox.Instance.PendingUnits==1,"Pending gift disappeared during scene transition");
+                if(arena.Mode==ArenaMode.Classes)
+                {
+                    Require(!arena.IsFinished&&arena.RemainingSeconds>30,"Immediate switch probe has no live round");
+                    arena.RequestMode(ArenaMode.Rematch);
+                    arena.SwitchToRequestedModeNow();
+                    yield return null;
+                    var next=FindAnyObjectByType<BattleArenaManager>();
+                    Require(next!=null&&next.Mode==ArenaMode.Rematch,"Immediate mode switch waited for timeout");
+                    Call(next,"DeliverEntries");
+                    Require(next.FindViewerFighter(id)!=null,"Immediate switch lost active viewer");
+                    report.AppendLine("Immediate mode switch: live clock bypassed, active viewer carried to next mode");
+                    continue;
+                }
                 Set(arena,"roundEndsAt",Time.time-1);
                 Call(arena,"Update");
                 Require(arena.IsFinished,"Timeout did not complete "+arena.Mode);

@@ -5,8 +5,10 @@ King: start, end, and scene change requested
 Zombies: start, end, and scene change requested
 Gold: start, end, and scene change requested
 Bridge: start, end, and scene change requested
+Boss slam: fracture effect, windup hold, damage, physical lift, outward launch, landing/recovery, warning cleanup passed
 Giant: start, end, and scene change requested
 Bounty: start, end, and scene change requested
-Classes: start, end, and scene change requested
+Immediate mode switch: live clock bypassed, active viewer carried to next mode
 Rematch: start, end, and scene change requested
+Boss slam: fracture effect, windup hold, damage, physical lift, outward launch, landing/recovery, warning cleanup passed
 GuestChampion: start, end, and scene change requested

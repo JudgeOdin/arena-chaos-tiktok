@@ -1,8 +1,13 @@
 ﻿# ARENA CHAOS — Güncel sürüm ve yayın kurulumu
 
-18 Kasım 2026. Bu belge güncel davranışı açıklar. Eski sürüm notları `Tools/Archive/RELEASE_HISTORY_BEFORE_AUDIT_2026-11-18.md` altında korunur. Güncel test kanıtları `Tools/TestResults` ve `Builds/TestResults` altındadır; raporların tarihine bakılmalıdır.
+21 Kasım 2026. Bu belge güncel davranışı açıklar. Eski sürüm notları `Tools/Archive/RELEASE_HISTORY_BEFORE_AUDIT_2026-11-18.md` altında korunur. Güncel test kanıtları `Tools/TestResults` ve `Builds/TestResults` altındadır; raporların tarihine bakılmalıdır.
 
 ## Oyun
+
+- Dev Avı / Yayıncı Şampiyonu darbesi: düz disk yerine devin ayağında 1,4 saniyede parlayan zemin çatlakları ve yükselen toz; isabette genişleyen şok dalgası, parçacıklar ve darbe sesi. Dev hazırlık sırasında durur. Hasar yarıçapı 3,4 m ve hasar 55 olarak korunur. Vurulan canlı oyuncular kısa süre havaya ve dışarı savrulur; o sırada hareket AI'sı ve yakın temas saldırıları durur, sonra devam eder. Dev başlangıç canı 610'dur.
+- Başlangıç canları: temel 160, okçu 224, muhafız 384 (+80 kalkan). Saldırı hasarları korunur. Temel can, sahnede eski değer bulunsa da GiftRoster üzerinden alınır.
+- F2 panelindeki **SEÇİLEN MODA ŞİMDİ GEÇ** düğmesi seçilmiş moda süre dolmadan geçer. Hayattaki izleyiciler yeni modun katılım kuyruğuna taşınır. Yalnızca mod seçmek sonraki tur için seçim yapmayı sürdürür.
+- Kelle Avı hedefinin dönen kafatası yerine kameraya dönük kırmızı-altın hedef nişanı vardır. İşaret isimlerin üstünde durur, hedefi takip eder ve hafifçe salınır. Vektör çizim kullanır; ek bir asset paketi gerektirmez.
 
 - Turlar 3 veya 5 dakika sürer. Son kişi kalması turu bitirmez; CPU takviyesi çatışmayı sürdürür. Sonuçtan 9 saniye sonra yeni tur başlar. Aynı müzik kaynağı tur geçişinde devam eder.
 - Gül temel dövüşçü getirir. Okçu gerçek çarpışma taramalı ok atar ve menzil korur; muhafız daha yüksek can, kalkan ve önden hasar azaltmasına sahiptir. Atlı sınıf eklenmedi; okçu ve muhafız mevcut premium seçeneklerdir.

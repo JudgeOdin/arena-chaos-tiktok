@@ -59,6 +59,7 @@ Thumbs.db
 /ARENA CHAOS TİKTOK/Tools/Video/CaptureRequest.*
 /ARENA CHAOS TİKTOK/Tools/TestResults/Inbox_*
 /ARENA CHAOS TİKTOK/Tools/TestResults/WSInbox_*
+/ARENA CHAOS TİKTOK/Tools/TestResults/*.log
 /ARENA CHAOS TİKTOK/Videos/**/Kaynaklar/
 *.jsonl
 *.bak

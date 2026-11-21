@@ -26,6 +26,8 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
         public string status,scenario,error,music,punch,spell;
         public int frames,width,height,fps,contacts,arrowHits;
         public bool casterAlive;
+        public int launchedFighters;
+        public float maxLaunchHeight;
         public List<Cue> cues=new List<Cue>();
     }
     ArenaPromoConfig config;
@@ -41,7 +43,7 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
     IEnumerator Record()
     {
         Application.runInBackground=true;Time.timeScale=1;Time.captureFramerate=config.fps;
-        while((arena=UnityEngine.Object.FindAnyObjectByType<BattleArenaManager>())==null||arena.Fighters.Count<2)yield return null;
+        while((arena=UnityEngine.Object.FindAnyObjectByType<BattleArenaManager>())==null||arena.Fighters.Count<(config.scenario=="giant"?1:2))yield return null;
         arena.AutomaticReinforcements=false;
         foreach(var receiver in UnityEngine.Object.FindObjectsByType<ArenaLiveBridge>()){receiver.Disconnect();receiver.enabled=false;}
         foreach(var actor in arena.Fighters){actor.enabled=false;actor.GiftIncreaseMaxHealth(config.scenario=="fire"&&actor!=arena.PlayerFighter?100:1500);}
@@ -56,7 +58,44 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
             if(content.punches!=null&&content.punches.Length>0)report.punch=AssetDatabase.GetAssetPath(content.punches[0]);
         }
         bool duelShot=config.scenario=="king" || config.scenario=="infection";
-        if(config.scenario=="infection")
+        if(config.scenario=="bounty")
+        {
+            hero=arena.Fighters[0];Position(hero,new Vector3(0,1,0));
+            int index=0;
+            foreach(var actor in arena.Fighters)
+            {
+                if(actor==hero)continue;
+                if(index>=3){actor.gameObject.SetActive(false);continue;}
+                float angle=index*Mathf.PI*2/3;
+                Position(actor,new Vector3(Mathf.Cos(angle)*2,1,Mathf.Sin(angle)*2));index++;
+            }
+        }
+        else if(config.scenario=="giant")
+        {
+            foreach(var actor in arena.Fighters)if(actor.DisplayName=="Arena Devi")hero=actor;
+            if(hero==null){Fail("Giant mode boss missing");yield break;}
+            Position(hero,Vector3.up);
+            foreach(var emblem in hero.GetComponentsInChildren<ArenaModeEmblem>())emblem.gameObject.SetActive(false);
+            for(int i=0;i<6;i++)
+            {
+                string id="arena-test:promo-raid-"+i;
+                if(!arena.TryJoinFromLike(id,"Takım "+(i+1),null)){Fail("Could not stage giant challenger "+i);yield break;}
+                var ally=arena.FindViewerFighter(id);
+                if(ally==null){Fail("Giant challenger missing");yield break;}
+                while(ally.IsEntering)yield return null;
+                ally.enabled=false;ally.GiftIncreaseMaxHealth(350);
+                float angle=i*Mathf.PI*2/6;
+                Position(ally,new Vector3(Mathf.Cos(angle)*2.5f,1,Mathf.Sin(angle)*2.5f));
+                ally.SetNameplateVisible(false);
+            }
+            hero.PowerUps.Activate(ArenaPower.Giant);
+            var warningField=typeof(BattleArenaManager).GetField("warning",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance);
+            var oldWarning=warningField.GetValue(arena) as GameObject;
+            if(oldWarning!=null)Destroy(oldWarning);
+            warningField.SetValue(arena,null);
+            typeof(BattleArenaManager).GetField("strikeAt",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance).SetValue(arena,Time.time+1.5f);
+        }
+        else if(config.scenario=="infection")
         {
             opponent=arena.Fighters[0];
             const string id="arena-test:promo-guard";
@@ -112,15 +151,24 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
         }
         var presentation=arena.GetComponent<ArenaPresentationDirector>();
         if(presentation!=null)presentation.StopAllCoroutines();
-        var camera=Camera.main;var brain=camera.GetComponent<CinemachineBrain>();if(brain!=null)brain.enabled=false;
+        var camera=Camera.main;var brain=camera.GetComponent<CinemachineBrain>();
+        if(config.scenario!="bounty")
+        {
+        if(brain!=null)brain.enabled=false;
         camera.rect=new Rect(0,0,1,1);camera.fieldOfView=config.scenario=="meteor"?48:45;
         camera.transform.position=config.scenario=="meteor"?new Vector3(0,12,-12):config.scenario=="fire"?new Vector3(0,6.8f,-8):new Vector3(0,7.5f,-9.5f);
         if(duelShot)
         {
-            camera.fieldOfView=43;
-            camera.transform.position=new Vector3(1.5f,4.0f,6.8f);
+            camera.fieldOfView=config.scenario=="king"?48:43;
+            camera.transform.position=config.scenario=="king"?new Vector3(1.5f,4.0f,7.8f):new Vector3(1.5f,4.0f,6.8f);
+        }
+        if(config.scenario=="giant")
+        {
+            camera.fieldOfView=58;
+            camera.transform.position=new Vector3(0,5.3f,-10);
         }
         camera.transform.LookAt(new Vector3(0,1.12f,0));
+        }
         if(config.scenario!="meteor")typeof(BattleArenaManager).GetField("arenaRadius",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance).SetValue(arena,5f);
         foreach(var actor in arena.Fighters)if(actor!=null&&actor.gameObject.activeSelf){actor.SetNameplateVisible(false);actor.enabled=true;}
         for(int i=0;i<4;i++)yield return new WaitForEndOfFrame();
@@ -128,6 +176,7 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
         if(!OpenEncoder()){yield break;}
         int total=Mathf.RoundToInt(config.seconds*config.fps),lastContacts=0,lastArrows=0;
         var drivers=UnityEngine.Object.FindObjectsByType<KayKitFighterDriver>();
+        var launched=new HashSet<ArenaFighter>();
         for(int frame=0;frame<total;frame++)
         {
             if(config.scenario=="infection"&&frame==Mathf.RoundToInt(config.fps*1.45f))
@@ -142,10 +191,16 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
             }
             if(duelShot && frame<config.fps*3)
             {
-                Vector3 start=new Vector3(1.5f,4.0f,6.8f);
-                Vector3 finish=new Vector3(1.2f,3.1f,5.7f);
+                Vector3 start=config.scenario=="king"?new Vector3(1.5f,4.0f,7.8f):new Vector3(1.5f,4.0f,6.8f);
+                Vector3 finish=config.scenario=="king"?new Vector3(1.2f,3.4f,7.4f):new Vector3(1.2f,3.1f,5.7f);
                 camera.transform.position=Vector3.Lerp(start,finish,frame/(config.fps*3f));
                 camera.transform.LookAt(new Vector3(0,1.12f,0));
+            }
+            if(config.scenario=="giant"&&hero!=null)
+            {
+                Vector3 focus=hero.transform.position;focus.y=1.12f;
+                camera.transform.position=Vector3.Lerp(camera.transform.position,focus+new Vector3(0,5.3f,-10),1-Mathf.Exp(-6f/config.fps));
+                camera.transform.LookAt(focus);
             }
             if(config.scenario=="meteor"&&frame==config.fps*3)
             {hero.PowerUps.Activate(ArenaPower.Meteor);report.cues.Add(new Cue{kind="meteor-cast",time=3});report.cues.Add(new Cue{kind="meteor-impact",time=4});}
@@ -164,6 +219,12 @@ public sealed class ArenaPromoRecorder : MonoBehaviour
                 if(contacts>lastContacts){report.cues.Add(new Cue{kind="punch",time=(float)frame/config.fps});lastContacts=contacts;}
                 var arrows=arena.GetComponent<ArenaArrowPool>();int arrowHits=arrows!=null?arrows.HitCount:0;
                 if(arrowHits>lastArrows){report.cues.Add(new Cue{kind="arrow",time=(float)frame/config.fps});lastArrows=arrowHits;}
+                foreach(var actor in arena.Fighters)
+                    if(actor!=null&&actor.IsKnockedBack)
+                    {
+                        if(launched.Add(actor)&&report.launchedFighters++==0)report.cues.Add(new Cue{kind="boss-slam",time=(float)frame/config.fps});
+                        report.maxLaunchHeight=Mathf.Max(report.maxLaunchHeight,actor.transform.position.y-1);
+                    }
                 if(frame%config.fps==0)File.WriteAllText(Path.Combine(config.folder,"progress.txt"),config.scenario+" "+frame+"/"+total);
             }
             catch(Exception exception){failure=exception.ToString();}

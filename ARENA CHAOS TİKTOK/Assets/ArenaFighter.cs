@@ -8,7 +8,7 @@ using UnityEditor;
 public class ArenaFighter : MonoBehaviour
 {
     private static int nextVisualStyle;
-    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float maxHealth = 160f;
     [SerializeField] private float attackDamage = 16f;
     [SerializeField] private float moveSpeed = 2.8f;
     [SerializeField] private float attackRange = 1.6f;
@@ -43,6 +43,20 @@ public class ArenaFighter : MonoBehaviour
     public bool IsBot { get; set; }
     public float LastDamageTime { get; private set; }
     public ArenaTacticalBrain TacticalBrain=>tacticalBrain;
+    float knockedBackUntil,normalDamping;
+    bool restoringKnockback;
+    public bool IsKnockedBack=>Time.time<knockedBackUntil;
+    public void KnockBackFrom(Vector3 origin,float horizontal,float vertical)
+    {
+        if(!IsAlive||IsEntering||body==null||body.isKinematic||arena==null||arena.IsFinished||arena.Stationary(this))return;
+        Vector3 away=transform.position-origin;away.y=0;
+        if(away.sqrMagnitude<.01f)away=transform.forward;
+        if(!restoringKnockback)normalDamping=body.linearDamping;
+        restoringKnockback=true;body.linearDamping=.8f;
+        knockedBackUntil=Time.time+.85f;
+        body.linearVelocity=away.normalized*horizontal+Vector3.up*vertical;
+        kayKitAnimation?.React(false);
+    }
     public void ConfigureRole(ArenaGiftRoster.Tier tier)
     {
         float healthFraction = maxHealth > 0f ? health / maxHealth : 1f;
@@ -322,6 +336,8 @@ public class ArenaFighter : MonoBehaviour
         PowerUps=GetComponent<ArenaPowerUps>();if(PowerUps==null)PowerUps=gameObject.AddComponent<ArenaPowerUps>();
         DisplayName = displayName;
         ViewerId=displayName.TrimStart('@');
+        var basicTier=Resources.Load<ArenaGiftRoster>("ArenaChaos/GiftRoster")?.Find(ArenaFighterRole.Basic);
+        maxHealth=basicTier!=null?basicTier.health:Mathf.Max(160,maxHealth);
         health = maxHealth;
         fighterColor = color;
         body = GetComponent<Rigidbody>();
@@ -389,7 +405,19 @@ public class ArenaFighter : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (!IsAlive || IsEntering || arena == null || arena.IsFinished || !arena.ModeCombatOpen || arena.Stationary(this)) return;
+        if(restoringKnockback&&!IsKnockedBack){body.linearDamping=normalDamping;restoringKnockback=false;}
+        if (!IsAlive || IsEntering || arena == null || arena.IsFinished || !arena.ModeCombatOpen) return;
+        if(arena.Stationary(this)){visualMoving=false;visualMotion?.SetMoving(false);return;}
+        if(IsKnockedBack)
+        {
+            visualMoving=false;visualMotion?.SetMoving(false);
+            float edge=arena.ModeRadius-.8f;
+            var position=body.position;var velocity=body.linearVelocity;
+            if(Mathf.Abs(position.x)>edge){position.x=Mathf.Clamp(position.x,-edge,edge);if(velocity.x*Mathf.Sign(position.x)>0)velocity.x=0;}
+            if(Mathf.Abs(position.z)>edge){position.z=Mathf.Clamp(position.z,-edge,edge);if(velocity.z*Mathf.Sign(position.z)>0)velocity.z=0;}
+            body.position=position;body.linearVelocity=velocity;
+            return;
+        }
         if (Time.time >= nextTargetSearch || target == null || !target.IsAlive || !arena.CanAttack(this,target))
         {
             target = tacticalBrain.SelectTarget();
@@ -445,7 +473,7 @@ public class ArenaFighter : MonoBehaviour
             yield return null;
         }
         fist.localPosition = reach;
-        if ((contactAnimation == null || !contactAnimation.UsesLimbContacts) && (kayKitAnimation == null || !kayKitAnimation.UsesLimbContacts))
+        if (!IsKnockedBack && (contactAnimation == null || !contactAnimation.UsesLimbContacts) && (kayKitAnimation == null || !kayKitAnimation.UsesLimbContacts))
         foreach (Collider hit in Physics.OverlapSphere(fist.position, 1.05f))
         {
             var victim = hit.GetComponentInParent<ArenaFighter>();
@@ -468,7 +496,7 @@ public class ArenaFighter : MonoBehaviour
     // by the combat component, including gift attack upgrades and shields.
     public bool ApplyLimbContactDamage(ArenaFighter victim)
     {
-        if (!IsAlive || arena == null || arena.IsFinished || victim == null || !arena.CanAttack(this,victim) || !victim.IsAlive || victim.IsEntering) return false;
+        if (!IsAlive || IsKnockedBack || arena == null || arena.IsFinished || victim == null || !arena.CanAttack(this,victim) || !victim.IsAlive || victim.IsEntering) return false;
         float before=victim.Health;
         float bonus=PowerUps.FireDamage;
         victim.TakeDamage(attackDamage*PowerUps.DamageMultiplier+bonus, this);

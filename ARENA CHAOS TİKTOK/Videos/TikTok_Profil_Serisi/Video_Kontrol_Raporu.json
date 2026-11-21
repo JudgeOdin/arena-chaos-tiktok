@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "source": "Staged Unity gameplay; 540x960 captures upscaled to 1080x1920",
+  "profileAccess": "TikTok profile could not be inspected from this environment",
+  "voice": "Synthetic Turkish narration: tr-TR-AhmetNeural",
+  "videos": [
+    {
+      "file": "01_Dostun_Zombiye_Donustu.mp4",
+      "status": "PASS",
+      "seconds": 18.7,
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "decodedFrames": 561,
+      "audioSeconds": 18.7,
+      "peakDb": -3.85,
+      "rmsDb": -20.32,
+      "bytes": 5084889
+    },
+    {
+      "file": "02_Bir_Kral_Butun_Takim.mp4",
+      "status": "PASS",
+      "seconds": 20.0,
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "decodedFrames": 600,
+      "audioSeconds": 20.0,
+      "peakDb": -2.42,
+      "rmsDb": -20.35,
+      "bytes": 7058645
+    },
+    {
+      "file": "03_Herkes_Tek_Bir_Deve_Karsi.mp4",
+      "status": "PASS",
+      "seconds": 20.8,
+      "width": 1080,
+      "height": 1920,
+      "fps": 30,
+      "decodedFrames": 624,
+      "audioSeconds": 20.8,
+      "peakDb": -3.7,
+      "rmsDb": -20.25,
+      "bytes": 13999097
+    }
+  ]
+}
